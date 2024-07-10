@@ -183,20 +183,29 @@ class CustomTokenizer:
                 space_buffer += char
             else:
                 if space_buffer:
-                    if len(current_substring) + len(space_buffer) > max_len:
+                    if len(current_substring) + len('<|space|>') > max_len:
                         substrings.append(current_substring)
                         current_substring = ""
-                    current_substring += '<|space|>' * (len(space_buffer) // len(' '))
+                    current_substring += '<|space|>'
                     space_buffer = ""
 
                 if len(current_substring) + len(char) > max_len:
-                    substrings.append(current_substring)
-                    current_substring = char
+                    if len(char) > max_len:
+                        # Split the word if it exceeds max_len
+                        for i in range(0, len(char), max_len):
+                            substrings.append(char[i:i + max_len])
+                        current_substring = ""
+                    else:
+                        substrings.append(current_substring)
+                        current_substring = char
                 else:
                     current_substring += char
 
         if space_buffer:
-            current_substring += '<|space|>' * (len(space_buffer) // len(' '))
+            if len(current_substring) + len('<|space|>') > max_len:
+                substrings.append(current_substring)
+                current_substring = ""
+            current_substring += '<|space|>'
 
         if current_substring:
             substrings.append(current_substring)
