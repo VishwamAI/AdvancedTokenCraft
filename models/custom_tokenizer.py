@@ -178,8 +178,9 @@ class CustomTokenizer:
         current_substring = ""
         space_buffer = ""
 
-        for char in s:
-            if char == ' ':
+        for match in re.finditer(self.pat_str, s):
+            token = match.group()
+            if token.isspace():
                 if not space_buffer:
                     space_buffer = '<|space|>'
             else:
@@ -189,12 +190,12 @@ class CustomTokenizer:
                         current_substring = ""
                     current_substring += space_buffer
                     space_buffer = ""
-                if len(current_substring) + len(char) > max_len:
+                if len(current_substring) + len(token) > max_len:
                     if current_substring:
                         substrings.append(current_substring)
-                    current_substring = char
+                    current_substring = token
                 else:
-                    current_substring += char
+                    current_substring += token
 
         if space_buffer:
             if len(current_substring) + len(space_buffer) > max_len:
