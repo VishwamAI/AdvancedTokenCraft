@@ -25,12 +25,14 @@ class CustomTokenizer:
     def _combine_tokens(self, gpt2_tokens, bert_tokens):
         # Custom logic to combine GPT-2 and BERT tokens
         combined_tokens = []
-        max_len = max(len(gpt2_tokens), len(bert_tokens))
-        for i in range(max_len):
-            if i < len(gpt2_tokens):
-                combined_tokens.append(gpt2_tokens[i])
-            if i < len(bert_tokens):
-                combined_tokens.append(bert_tokens[i])
+        gpt2_index, bert_index = 0, 0
+        while gpt2_index < len(gpt2_tokens) and bert_index < len(bert_tokens):
+            combined_tokens.append(gpt2_tokens[gpt2_index])
+            combined_tokens.append(bert_tokens[bert_index])
+            gpt2_index += 1
+            bert_index += 1
+        combined_tokens.extend(gpt2_tokens[gpt2_index:])
+        combined_tokens.extend(bert_tokens[bert_index:])
         return combined_tokens
 
     def encode(self, text):
@@ -42,12 +44,14 @@ class CustomTokenizer:
     def _combine_encoded(self, gpt2_encoded, bert_encoded):
         # Custom logic to combine GPT-2 and BERT encoded tokens
         combined_encoded = []
-        max_len = max(len(gpt2_encoded), len(bert_encoded))
-        for i in range(max_len):
-            if i < len(gpt2_encoded):
-                combined_encoded.append(gpt2_encoded[i])
-            if i < len(bert_encoded):
-                combined_encoded.append(bert_encoded[i])
+        gpt2_index, bert_index = 0, 0
+        while gpt2_index < len(gpt2_encoded) and bert_index < len(bert_encoded):
+            combined_encoded.append(gpt2_encoded[gpt2_index])
+            combined_encoded.append(bert_encoded[bert_index])
+            gpt2_index += 1
+            bert_index += 1
+        combined_encoded.extend(gpt2_encoded[gpt2_index:])
+        combined_encoded.extend(bert_encoded[bert_index:])
         return combined_encoded
 
     def decode(self, token_ids):
@@ -71,7 +75,7 @@ class CustomTokenizer:
         gpt2_token_ids = token_ids[::2]
         bert_token_ids = token_ids[1::2]
         gpt2_token_type_ids = [0] * len(gpt2_token_ids)
-        bert_token_type_ids = [0] * len(bert_token_ids)
+        bert_token_type_ids = [1] * len(bert_token_ids)
         return gpt2_token_type_ids + bert_token_type_ids
 
 # Example usage
