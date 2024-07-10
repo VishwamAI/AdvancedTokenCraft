@@ -1,0 +1,58 @@
+from transformers import GPT2Tokenizer, BertTokenizer
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
+class CustomTokenizer:
+    def __init__(self, gpt2_model_name='gpt2', bert_model_name='bert-base-uncased', embedding_model_name='sentence-transformers/all-MiniLM-L6-v2'):
+        self.gpt2_tokenizer = GPT2Tokenizer.from_pretrained(gpt2_model_name)
+        self.bert_tokenizer = BertTokenizer.from_pretrained(bert_model_name)
+        self.embedding_model = SentenceTransformer(embedding_model_name)
+
+        self.special_tokens = {
+            'pad_token': '[PAD]',
+            'cls_token': '[CLS]',
+            'sep_token': '[SEP]',
+            'mask_token': '[MASK]'
+        }
+
+        self.gpt2_tokenizer.add_special_tokens(self.special_tokens)
+        self.bert_tokenizer.add_special_tokens(self.special_tokens)
+
+    def tokenize(self, text):
+        gpt2_tokens = self.gpt2_tokenizer.tokenize(text)
+        bert_tokens = self.bert_tokenizer.tokenize(text)
+        return self._combine_tokens(gpt2_tokens, bert_tokens)
+
+    def encode(self, text):
+        gpt2_encoded = self.gpt2_tokenizer.encode(text, add_special_tokens=True)
+        bert_encoded = self.bert_tokenizer.encode(text, add_special_tokens=True)
+        return self._combine_encoded(gpt2_encoded, bert_encoded)
+
+    def decode(self, token_ids):
+        gpt2_decoded = self.gpt2_tokenizer.decode(token_ids, skip_special_tokens=True)
+        bert_decoded = self.bert_tokenizer.decode(token_ids, skip_special_tokens=True)
+        return gpt2_decoded if len(gpt2_decoded) > len(bert_decoded) else bert_decoded
+
+    def create_attention_mask(self, token_ids):
+        return [1 if token != self.gpt2_tokenizer.pad_token_id else 0 for token in token_ids]
+
+    def create_token_type_ids(self, token_ids):
+        return [0] * len(token_ids)
+
+    def _combine_tokens(self, gpt2_tokens, bert_tokens):
+        combined_tokens = []
+        for gpt2_token, bert_token in zip(gpt2_tokens, bert_tokens):
+            gpt2_embedding = self.embedding_model.encode(gpt2_token)
+            bert_embedding = self.embedding_model.encode(bert_token)
+            similarity = np.dot(gpt2_embedding, bert_embedding) / (np.linalg.norm(gpt2_embedding) * np.linalg.norm(bert_embedding))
+            combined_tokens.append(gpt2_token if similarity > 0.5 else bert_token)
+        return combined_tokens
+
+    def _combine_encoded(self, gpt2_encoded, bert_encoded):
+        combined_encoded = []
+        for gpt2_id, bert_id in zip(gpt2_encoded, bert_encoded):
+            gpt2_embedding = self.embedding_model.encode(self.gpt2_tokenizer.decode([gpt2_id]))
+            bert_embedding = self.embedding_model.encode(self.bert_tokenizer.decode([bert_id]))
+            similarity = np.dot(gpt2_embedding, bert_embedding) / (np.linalg.norm(gpt2_embedding) * np.linalg.norm(bert_embedding))
+            combined_encoded.append(gpt2_id if similarity > 0.5 else bert_id)
+        return combined_encoded
