@@ -1,4 +1,6 @@
 from transformers import GPT2Tokenizer, BertTokenizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 class CustomTokenizer:
     def __init__(self):
@@ -27,8 +29,17 @@ class CustomTokenizer:
         combined_tokens = []
         gpt2_index, bert_index = 0, 0
         while gpt2_index < len(gpt2_tokens) and bert_index < len(bert_tokens):
-            combined_tokens.append(gpt2_tokens[gpt2_index])
-            combined_tokens.append(bert_tokens[bert_index])
+            gpt2_token = gpt2_tokens[gpt2_index]
+            bert_token = bert_tokens[bert_index]
+            # Calculate semantic similarity (placeholder logic, replace with actual model-based similarity)
+            similarity = cosine_similarity(
+                np.array(self.gpt2_tokenizer.encode(gpt2_token)).reshape(1, -1),
+                np.array(self.bert_tokenizer.encode(bert_token)).reshape(1, -1)
+            )[0][0]
+            if similarity > 0.5:  # Threshold for similarity, adjust as needed
+                combined_tokens.append(gpt2_token)
+            else:
+                combined_tokens.append(bert_token)
             gpt2_index += 1
             bert_index += 1
         combined_tokens.extend(gpt2_tokens[gpt2_index:])
@@ -46,8 +57,17 @@ class CustomTokenizer:
         combined_encoded = []
         gpt2_index, bert_index = 0, 0
         while gpt2_index < len(gpt2_encoded) and bert_index < len(bert_encoded):
-            combined_encoded.append(gpt2_encoded[gpt2_index])
-            combined_encoded.append(bert_encoded[bert_index])
+            gpt2_token = gpt2_encoded[gpt2_index]
+            bert_token = bert_encoded[bert_index]
+            # Calculate semantic similarity (placeholder logic, replace with actual model-based similarity)
+            similarity = cosine_similarity(
+                np.array([gpt2_token]).reshape(1, -1),
+                np.array([bert_token]).reshape(1, -1)
+            )[0][0]
+            if similarity > 0.5:  # Threshold for similarity, adjust as needed
+                combined_encoded.append(gpt2_token)
+            else:
+                combined_encoded.append(bert_token)
             gpt2_index += 1
             bert_index += 1
         combined_encoded.extend(gpt2_encoded[gpt2_index:])
