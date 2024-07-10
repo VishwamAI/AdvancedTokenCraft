@@ -180,7 +180,10 @@ class CustomTokenizer:
 
         for char in s:
             if char == ' ':
-                space_buffer += char
+                if space_buffer and len(current_substring) + len('<|space|>') > max_len:
+                    substrings.append(current_substring)
+                    current_substring = ""
+                space_buffer = ' '
             else:
                 if space_buffer:
                     if len(current_substring) + len('<|space|>') > max_len:
@@ -190,13 +193,14 @@ class CustomTokenizer:
                     space_buffer = ""
 
                 if len(current_substring) + len(char) > max_len:
+                    if len(current_substring) > 0:
+                        substrings.append(current_substring)
                     if len(char) > max_len:
                         # Split the word if it exceeds max_len
                         for i in range(0, len(char), max_len):
                             substrings.append(char[i:i + max_len])
                         current_substring = ""
                     else:
-                        substrings.append(current_substring)
                         current_substring = char
                 else:
                     current_substring += char
