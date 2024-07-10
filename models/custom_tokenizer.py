@@ -180,19 +180,15 @@ class CustomTokenizer:
 
         for char in s:
             if char == ' ':
-                space_buffer += ' '
-                continue
+                if not space_buffer:
+                    space_buffer = '<|space|>'
             else:
                 if space_buffer:
-                    if len(current_substring) + len('<|space|>') > max_len:
+                    if len(current_substring) + len(space_buffer) > max_len:
                         substrings.append(current_substring)
                         current_substring = ""
-                    if current_substring:
-                        current_substring += '<|space|>'
-                    else:
-                        current_substring = '<|space|>'
+                    current_substring += space_buffer
                     space_buffer = ""
-
                 if len(current_substring) + len(char) > max_len:
                     if current_substring:
                         substrings.append(current_substring)
@@ -201,13 +197,10 @@ class CustomTokenizer:
                     current_substring += char
 
         if space_buffer:
-            if len(current_substring) + len('<|space|>') > max_len:
+            if len(current_substring) + len(space_buffer) > max_len:
                 substrings.append(current_substring)
                 current_substring = ""
-            if current_substring:
-                current_substring += '<|space|>'
-            else:
-                current_substring = '<|space|>'
+            current_substring += space_buffer
 
         if current_substring:
             substrings.append(current_substring)
