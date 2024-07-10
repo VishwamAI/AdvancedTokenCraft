@@ -176,42 +176,23 @@ class CustomTokenizer:
 
         substrings = []
         current_substring = ""
-        space_buffer = ""
 
         for char in s:
             if char == ' ':
-                if not space_buffer:
-                    space_buffer = ' '
-                else:
-                    continue
+                if len(current_substring) + len('<|space|>') > max_len:
+                    substrings.append(current_substring)
+                    current_substring = ""
+                if not current_substring.endswith('<|space|>'):
+                    current_substring += '<|space|>'
             else:
-                if space_buffer:
-                    if len(current_substring) + len('<|space|>') > max_len:
-                        substrings.append(current_substring)
-                        current_substring = ""
-                    if not current_substring.endswith('<|space|>'):
-                        current_substring += '<|space|>'
-                    space_buffer = ""
-
-                if len(current_substring) + len(char) > max_len:
-                    if len(current_substring) > 0:
-                        substrings.append(current_substring)
-                    if len(char) > max_len:
-                        # Split the word if it exceeds max_len
-                        for i in range(0, len(char), max_len):
-                            substrings.append(char[i:i + max_len])
-                        current_substring = ""
-                    else:
-                        current_substring = char
+                if current_substring.endswith('<|space|>') and len(current_substring) + len(char) > max_len:
+                    substrings.append(current_substring)
+                    current_substring = char
+                elif len(current_substring) + len(char) > max_len:
+                    substrings.append(current_substring)
+                    current_substring = char
                 else:
                     current_substring += char
-
-        if space_buffer:
-            if len(current_substring) + len('<|space|>') > max_len:
-                substrings.append(current_substring)
-                current_substring = ""
-            if not current_substring.endswith('<|space|>'):
-                current_substring += '<|space|>'
 
         if current_substring:
             substrings.append(current_substring)
