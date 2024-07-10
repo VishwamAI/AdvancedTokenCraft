@@ -177,40 +177,32 @@ class CustomTokenizer:
 
         substrings = []
         current_substring = ""
-        space_buffer = ""
+        space_buffer = False
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
-            if token.isspace() or token == '<|space|>':
+            if token.isspace():
                 if not space_buffer:
-                    space_buffer = '<|space|>'
-            else:
-                if space_buffer:
-                    if len(current_substring) + len('<|space|>') > max_len:
+                    space_buffer = True
+                    if current_substring:
                         substrings.append(current_substring)
                         current_substring = ""
-                    current_substring += '<|space|>'
-                    space_buffer = ""
-                if len(token) > max_len:
-                    # Split the token into smaller parts that respect max_len
-                    for i in range(0, len(token), max_len):
-                        part = token[i:i + max_len]
-                        if current_substring:
-                            substrings.append(current_substring)
-                        current_substring = part
-                else:
-                    if len(current_substring) + len(token) > max_len:
-                        if current_substring:
-                            substrings.append(current_substring)
-                        current_substring = token
+            else:
+                if space_buffer:
+                    substrings.append('<|space|>')
+                    space_buffer = False
+                if len(current_substring) + len(token) > max_len:
+                    if current_substring:
+                        substrings.append(current_substring)
+                        current_substring = ""
+                    if len(token) > max_len:
+                        # Split the token into smaller parts
+                        for i in range(0, len(token), max_len):
+                            substrings.append(token[i:i + max_len])
                     else:
-                        current_substring += token
-
-        if space_buffer:
-            if len(current_substring) + len('<|space|>') > max_len:
-                substrings.append(current_substring)
-                current_substring = ""
-            current_substring += '<|space|>'
+                        current_substring = token
+                else:
+                    current_substring += token
 
         if current_substring:
             substrings.append(current_substring)
