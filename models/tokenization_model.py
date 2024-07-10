@@ -1,4 +1,4 @@
-from transformers import GPT2Tokenizer, BertTokenizer
+from transformers import GPT2Tokenizer, BertTokenizer, pipeline
 from sentence_transformers import SentenceTransformer
 import numpy as np
 
@@ -7,6 +7,7 @@ class CustomTokenizer:
         self.gpt2_tokenizer = GPT2Tokenizer.from_pretrained(gpt2_model_name)
         self.bert_tokenizer = BertTokenizer.from_pretrained(bert_model_name)
         self.embedding_model = SentenceTransformer(embedding_model_name)
+        self.coherence_model = pipeline('text-classification', model='distilbert-base-uncased-finetuned-sst-2-english')
 
         self.special_tokens = {
             'pad_token': '[PAD]',
@@ -72,6 +73,6 @@ class CustomTokenizer:
         return combined_encoded
 
     def _evaluate_text(self, text):
-        # Placeholder method for evaluating text coherence
-        # This method should be implemented to use a language model to score the coherence of the text
-        return len(text)  # Example: using length as a simple heuristic
+        # Use a language model to score the coherence of the text
+        result = self.coherence_model(text)
+        return result[0]['score']
