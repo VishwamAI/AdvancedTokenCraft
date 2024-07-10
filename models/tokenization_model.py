@@ -41,18 +41,22 @@ class CustomTokenizer:
 
     def _combine_tokens(self, gpt2_tokens, bert_tokens):
         combined_tokens = []
-        for gpt2_token, bert_token in zip(gpt2_tokens, bert_tokens):
-            gpt2_embedding = self.embedding_model.encode(gpt2_token)
-            bert_embedding = self.embedding_model.encode(bert_token)
-            similarity = np.dot(gpt2_embedding, bert_embedding) / (np.linalg.norm(gpt2_embedding) * np.linalg.norm(bert_embedding))
+        gpt2_embeddings = self.embedding_model.encode(gpt2_tokens, convert_to_tensor=True)
+        bert_embeddings = self.embedding_model.encode(bert_tokens, convert_to_tensor=True)
+        similarities = np.dot(gpt2_embeddings, bert_embeddings.T) / (np.linalg.norm(gpt2_embeddings, axis=1)[:, None] * np.linalg.norm(bert_embeddings, axis=1))
+        for i, (gpt2_token, bert_token) in enumerate(zip(gpt2_tokens, bert_tokens)):
+            similarity = similarities[i, i]
             combined_tokens.append(gpt2_token if similarity > 0.5 else bert_token)
         return combined_tokens
 
     def _combine_encoded(self, gpt2_encoded, bert_encoded):
         combined_encoded = []
-        for gpt2_id, bert_id in zip(gpt2_encoded, bert_encoded):
-            gpt2_embedding = self.embedding_model.encode(self.gpt2_tokenizer.decode([gpt2_id]))
-            bert_embedding = self.embedding_model.encode(self.bert_tokenizer.decode([bert_id]))
-            similarity = np.dot(gpt2_embedding, bert_embedding) / (np.linalg.norm(gpt2_embedding) * np.linalg.norm(bert_embedding))
+        gpt2_decoded = [self.gpt2_tokenizer.decode([gpt2_id]) for gpt2_id in gpt2_encoded]
+        bert_decoded = [self.bert_tokenizer.decode([bert_id]) for bert_id in bert_encoded]
+        gpt2_embeddings = self.embedding_model.encode(gpt2_decoded, convert_to_tensor=True)
+        bert_embeddings = self.embedding_model.encode(bert_decoded, convert_to_tensor=True)
+        similarities = np.dot(gpt2_embeddings, bert_embeddings.T) / (np.linalg.norm(gpt2_embeddings, axis=1)[:, None] * np.linalg.norm(bert_embeddings, axis=1))
+        for i, (gpt2_id, bert_id) in enumerate(zip(gpt2_encoded, bert_encoded)):
+            similarity = similarities[i, i]
             combined_encoded.append(gpt2_id if similarity > 0.5 else bert_id)
         return combined_encoded
