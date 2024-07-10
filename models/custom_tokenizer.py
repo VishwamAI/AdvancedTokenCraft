@@ -180,7 +180,10 @@ class CustomTokenizer:
 
         for char in s:
             if char == ' ':
-                space_buffer += ' '
+                if not space_buffer:
+                    space_buffer = ' '
+                else:
+                    continue
             else:
                 if space_buffer:
                     if len(current_substring) + len('<|space|>') > max_len:
