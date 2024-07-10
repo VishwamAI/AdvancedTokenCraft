@@ -181,8 +181,7 @@ class CustomTokenizer:
         for match in re.finditer(self.pat_str, s):
             token = match.group()
             if token.isspace() or token == '<|space|>':
-                if not space_buffer:
-                    space_buffer = '<|space|>'
+                space_buffer = '<|space|>'
             else:
                 if space_buffer:
                     if len(current_substring) + len(space_buffer) > max_len:
