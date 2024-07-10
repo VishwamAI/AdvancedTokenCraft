@@ -179,6 +179,12 @@ class CustomTokenizer:
                     current_substring = char
             else:
                 current_substring += char
+
+            # Handle multiple consecutive spaces
+            if char == ' ' and len(current_substring) > 1 and current_substring[-2] == ' ':
+                substrings.append(current_substring[:-1])
+                current_substring = ' '
+
         if current_substring:
             substrings.append(current_substring)
         return substrings
