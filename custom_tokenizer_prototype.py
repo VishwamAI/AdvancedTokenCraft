@@ -1,9 +1,14 @@
-from transformers import GPT2Tokenizer, BertTokenizer
+from transformers import GPT2Tokenizer, BertTokenizer, AutoModel, AutoTokenizer
+import torch
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 class CustomTokenizer:
     def __init__(self):
         self.gpt2_tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
         self.bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        self.embedding_model = AutoModel.from_pretrained('sentence-transformers/all-MiniLM-L6-v2')
+        self.embedding_tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/all-MiniLM-L6-v2')
         self.special_tokens = {
             'pad_token': '[PAD]',
             'cls_token': '[CLS]',
@@ -27,13 +32,22 @@ class CustomTokenizer:
         combined_tokens = []
         gpt2_index, bert_index = 0, 0
         while gpt2_index < len(gpt2_tokens) and bert_index < len(bert_tokens):
-            combined_tokens.append(gpt2_tokens[gpt2_index])
-            combined_tokens.append(bert_tokens[bert_index])
+            gpt2_embedding = self._get_embedding(gpt2_tokens[gpt2_index])
+            bert_embedding = self._get_embedding(bert_tokens[bert_index])
+            similarity = cosine_similarity([gpt2_embedding], [bert_embedding])[0][0]
+            if similarity > 0.5:  # Threshold for combining tokens
+                combined_tokens.append(gpt2_tokens[gpt2_index])
+                combined_tokens.append(bert_tokens[bert_index])
             gpt2_index += 1
             bert_index += 1
         combined_tokens.extend(gpt2_tokens[gpt2_index:])
         combined_tokens.extend(bert_tokens[bert_index:])
         return combined_tokens
+
+    def _get_embedding(self, token):
+        inputs = self.embedding_tokenizer(token, return_tensors='pt')
+        outputs = self.embedding_model(**inputs)
+        return outputs.last_hidden_state.mean(dim=1).detach().numpy().flatten()
 
     def encode(self, text):
         gpt2_encoded = self.gpt2_tokenizer.encode(text, add_special_tokens=True)
@@ -46,8 +60,12 @@ class CustomTokenizer:
         combined_encoded = []
         gpt2_index, bert_index = 0, 0
         while gpt2_index < len(gpt2_encoded) and bert_index < len(bert_encoded):
-            combined_encoded.append(gpt2_encoded[gpt2_index])
-            combined_encoded.append(bert_encoded[bert_index])
+            gpt2_embedding = self._get_embedding(self.gpt2_tokenizer.decode([gpt2_encoded[gpt2_index]]))
+            bert_embedding = self._get_embedding(self.bert_tokenizer.decode([bert_encoded[bert_index]]))
+            similarity = cosine_similarity([gpt2_embedding], [bert_embedding])[0][0]
+            if similarity > 0.5:  # Threshold for combining tokens
+                combined_encoded.append(gpt2_encoded[gpt2_index])
+                combined_encoded.append(bert_encoded[bert_index])
             gpt2_index += 1
             bert_index += 1
         combined_encoded.extend(gpt2_encoded[gpt2_index:])
