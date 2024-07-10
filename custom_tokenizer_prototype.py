@@ -19,12 +19,27 @@ class CustomTokenizer:
     def tokenize(self, text):
         gpt2_tokens = self.gpt2_tokenizer.tokenize(text)
         bert_tokens = self.bert_tokenizer.tokenize(text)
-        return gpt2_tokens, bert_tokens
+        combined_tokens = self._combine_tokens(gpt2_tokens, bert_tokens)
+        return combined_tokens
+
+    def _combine_tokens(self, gpt2_tokens, bert_tokens):
+        # Custom logic to combine GPT-2 and BERT tokens
+        combined_tokens = []
+        for gpt2_token, bert_token in zip(gpt2_tokens, bert_tokens):
+            combined_tokens.append(gpt2_token)
+            combined_tokens.append(bert_token)
+        return combined_tokens
 
     def encode(self, text):
         gpt2_encoded = self.gpt2_tokenizer.encode(text, add_special_tokens=True)
         bert_encoded = self.bert_tokenizer.encode(text, add_special_tokens=True)
-        return gpt2_encoded, bert_encoded
+        combined_encoded = self._combine_encoded(gpt2_encoded, bert_encoded)
+        return combined_encoded
+
+    def _combine_encoded(self, gpt2_encoded, bert_encoded):
+        # Custom logic to combine GPT-2 and BERT encoded tokens
+        combined_encoded = gpt2_encoded + bert_encoded
+        return combined_encoded
 
     def decode(self, token_ids, model='gpt2'):
         if model == 'gpt2':
@@ -54,25 +69,23 @@ class CustomTokenizer:
 if __name__ == "__main__":
     tokenizer = CustomTokenizer()
     text = "Hello, this is a test sentence."
-    gpt2_tokens, bert_tokens = tokenizer.tokenize(text)
-    print("GPT-2 Tokens:", gpt2_tokens)
-    print("BERT Tokens:", bert_tokens)
+    combined_tokens = tokenizer.tokenize(text)
+    print("Combined Tokens:", combined_tokens)
 
-    gpt2_encoded, bert_encoded = tokenizer.encode(text)
-    print("GPT-2 Encoded:", gpt2_encoded)
-    print("BERT Encoded:", bert_encoded)
+    combined_encoded = tokenizer.encode(text)
+    print("Combined Encoded:", combined_encoded)
 
-    gpt2_decoded = tokenizer.decode(gpt2_encoded, model='gpt2')
-    bert_decoded = tokenizer.decode(bert_encoded, model='bert')
+    gpt2_decoded = tokenizer.decode(combined_encoded[:len(combined_encoded)//2], model='gpt2')
+    bert_decoded = tokenizer.decode(combined_encoded[len(combined_encoded)//2:], model='bert')
     print("GPT-2 Decoded:", gpt2_decoded)
     print("BERT Decoded:", bert_decoded)
 
-    gpt2_attention_mask = tokenizer.create_attention_mask(gpt2_encoded, model='gpt2')
-    bert_attention_mask = tokenizer.create_attention_mask(bert_encoded, model='bert')
+    gpt2_attention_mask = tokenizer.create_attention_mask(combined_encoded[:len(combined_encoded)//2], model='gpt2')
+    bert_attention_mask = tokenizer.create_attention_mask(combined_encoded[len(combined_encoded)//2:], model='bert')
     print("GPT-2 Attention Mask:", gpt2_attention_mask)
     print("BERT Attention Mask:", bert_attention_mask)
 
-    gpt2_token_type_ids = tokenizer.create_token_type_ids(gpt2_encoded, model='gpt2')
-    bert_token_type_ids = tokenizer.create_token_type_ids(bert_encoded, model='bert')
+    gpt2_token_type_ids = tokenizer.create_token_type_ids(combined_encoded[:len(combined_encoded)//2], model='gpt2')
+    bert_token_type_ids = tokenizer.create_token_type_ids(combined_encoded[len(combined_encoded)//2:], model='bert')
     print("GPT-2 Token Type IDs:", gpt2_token_type_ids)
     print("BERT Token Type IDs:", bert_token_type_ids)
