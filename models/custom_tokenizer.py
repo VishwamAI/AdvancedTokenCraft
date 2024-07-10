@@ -14,6 +14,9 @@ class Model:
                 for line in f:
                     token, token_id = line.strip().split()
                     token_to_id_map[token] = int(token_id)
+            # Ensure the <|space|> token is included in the vocabulary
+            if '<|space|>' not in token_to_id_map:
+                token_to_id_map['<|space|>'] = len(token_to_id_map)
         except FileNotFoundError:
             raise FileNotFoundError(f"Vocabulary file {vocab_file} not found.")
         except ValueError:
@@ -26,7 +29,7 @@ class Model:
 class CustomTokenizer:
     special_tokens: Dict[str, int]
     num_reserved_special_tokens = 256
-    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+"
+    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+|<\|space\|>"
 
     def __init__(self, model_path: str):
         """
@@ -61,6 +64,7 @@ class CustomTokenizer:
             "<|end_header_id|>",
             "<|reserved_special_token_4|>",
             "<|eot_id|>",  # end of turn
+            "<|space|>",
         ] + [
             f"<|reserved_special_token_{i}|>"
             for i in range(5, self.num_reserved_special_tokens - 5)
@@ -85,6 +89,7 @@ class CustomTokenizer:
         *,
         bos: bool,
         eos: bool,
+        max_len: int = 10,  # Add max_len parameter with a default value
         allowed_special: Union[Literal["all"], AbstractSet[str]] = set(),
         disallowed_special: Union[Literal["all"], Collection[str]] = (),
     ) -> List[int]:
@@ -95,6 +100,7 @@ class CustomTokenizer:
         s (str): The input string to be encoded.
         bos (bool): Whether to prepend the beginning-of-sequence token.
         eos (bool): Whether to append the end-of-sequence token.
+        max_len (int): The maximum length of each substring. Must be a positive integer.
         allowed_special ("all"|set[str]): allowed special tokens in string
         disallowed_special ("all"|set[str]): special tokens that raise an error when in string
 
@@ -103,11 +109,14 @@ class CustomTokenizer:
         """
         assert type(s) is str
 
+        if self.model is None:
+            raise RuntimeError("No model loaded. Please load a model before encoding.")
+
         allowed_special_set = set(allowed_special) if allowed_special != "all" else set(self.special_tokens.keys())
         disallowed_special_set = set(disallowed_special) if disallowed_special != "all" else set()
 
-        # Tokenize the input string using the regular expression pattern
-        tokens = re.findall(self.pat_str, s)
+        # Tokenize the input string using the updated splitting method
+        tokens = self._split_whitespaces_or_nonwhitespaces(s, max_len=max_len)
 
         # Check for disallowed special tokens
         for token in tokens:
@@ -116,9 +125,10 @@ class CustomTokenizer:
 
         # Convert tokens to token IDs, filtering out unknown tokens
         if self.model:
-            token_ids = [self.model.token_to_id(token) for token in tokens if self.model.token_to_id(token) != -1 or token in allowed_special_set]
+            token_ids = [self.model.token_to_id(token) if token != '<|space|>' else self.special_tokens['<|space|>'] for token in tokens if self.model.token_to_id(token) != -1 or token in allowed_special_set]
         else:
-            token_ids = []
+            token_ids = [self.special_tokens['<|space|>'] if token == '<|space|>' else -1 for token in tokens]
+            token_ids = [token_id for token_id in token_ids if token_id != -1]
 
         # Handle special tokens
         if bos:
@@ -139,12 +149,13 @@ class CustomTokenizer:
         str: The decoded string.
         """
         tokens = []
-        if self.model:
-            for token_id in t:
-                if token_id in self.model.id_to_token_map:
-                    tokens.append(self.model.id_to_token_map[token_id])
-                else:
-                    raise ValueError(f"Unknown token ID: {token_id}")
+        for token_id in t:
+            if self.model and token_id in self.model.id_to_token_map:
+                tokens.append(self.model.id_to_token_map[token_id])
+            elif token_id == self.special_tokens['<|space|>']:
+                tokens.append(' ')
+            else:
+                raise ValueError(f"Unknown token ID: {token_id}")
         return ''.join(tokens)
 
     def _split_whitespaces_or_nonwhitespaces(self, s: str, max_len: int) -> List[str]:
@@ -166,7 +177,7 @@ class CustomTokenizer:
         substrings = []
         current_substring = ""
         for char in s:
-            if len(current_substring) + len(char) > max_len:
+            if len(current_substring) + (len('<|space|>') if char == ' ' else len(char)) > max_len:
                 # Find the last whitespace in the current substring
                 last_whitespace = current_substring.rfind(' ')
                 if last_whitespace != -1:
@@ -182,14 +193,20 @@ class CustomTokenizer:
                 current_substring += char
 
             # Handle multiple consecutive spaces
-            if char == ' ' and len(current_substring) > 1 and current_substring[-2] == ' ':
-                substrings.append(current_substring[:-1])
-                current_substring = ' '
+            if char == ' ':
+                if current_substring.strip() == '':
+                    substrings.append('<|space|>')
+                    current_substring = ''
+                elif len(current_substring) > 1 and current_substring[-2] == ' ':
+                    substrings.append('<|space|>')
+                    current_substring = ' '
+                else:
+                    current_substring = current_substring[:-1] + '<|space|>'
 
-            # Handle words longer than max_len
-            while len(current_substring) > max_len:
-                substrings.append(current_substring[:max_len])
-                current_substring = current_substring[max_len:]
+        # Handle words longer than max_len
+        while len(current_substring) > max_len:
+            substrings.append(current_substring[:max_len])
+            current_substring = current_substring[max_len:]
 
         if current_substring:
             substrings.append(current_substring)
@@ -209,9 +226,8 @@ class ChatFormat:
 
     def encode_message(self, message: Dict[str, str]) -> List[int]:
         tokens = self.encode_header(message)
-        tokens.extend(
-            self.tokenizer.encode(message["content"].strip(), bos=False, eos=False)
-        )
+        content_tokens = self.tokenizer.encode(message["content"].strip(), bos=False, eos=False)
+        tokens.extend(content_tokens)
         tokens.append(self.tokenizer.special_tokens["<|eot_id|>"])
         return tokens
 
@@ -220,5 +236,5 @@ class ChatFormat:
         tokens.append(self.tokenizer.special_tokens["<|begin_of_text|>"])
         for message in dialog:
             tokens.extend(self.encode_message(message))
-        tokens.extend(self.encode_header({"role": "assistant", "content": ""}))
+        tokens.extend(self.encode_message({"role": "assistant", "content": ""}))
         return tokens
