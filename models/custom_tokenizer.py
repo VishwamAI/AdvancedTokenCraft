@@ -172,7 +172,7 @@ class CustomTokenizer:
                 if last_whitespace != -1:
                     # Split at the last whitespace
                     substrings.append(current_substring[:last_whitespace])
-                    current_substring = current_substring[last_whitespace + 1:] + char
+                    current_substring = current_substring[last_whitespace:] + char
                 else:
                     # No whitespace found, split at max_len
                     substrings.append(current_substring)
