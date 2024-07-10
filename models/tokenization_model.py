@@ -31,13 +31,23 @@ class CustomTokenizer:
     def decode(self, token_ids):
         gpt2_decoded = self.gpt2_tokenizer.decode(token_ids, skip_special_tokens=True)
         bert_decoded = self.bert_tokenizer.decode(token_ids, skip_special_tokens=True)
-        return gpt2_decoded if len(gpt2_decoded) > len(bert_decoded) else bert_decoded
+        # Use a more sophisticated selection approach
+        gpt2_score = self._evaluate_text(gpt2_decoded)
+        bert_score = self._evaluate_text(bert_decoded)
+        return gpt2_decoded if gpt2_score > bert_score else bert_decoded
 
     def create_attention_mask(self, token_ids):
         return [1 if token != self.gpt2_tokenizer.pad_token_id else 0 for token in token_ids]
 
     def create_token_type_ids(self, token_ids):
-        return [0] * len(token_ids)
+        # Handle multi-sentence inputs
+        token_type_ids = []
+        current_type = 0
+        for token in token_ids:
+            token_type_ids.append(current_type)
+            if token == self.gpt2_tokenizer.sep_token_id:
+                current_type = 1 - current_type
+        return token_type_ids
 
     def _combine_tokens(self, gpt2_tokens, bert_tokens):
         combined_tokens = []
@@ -60,3 +70,8 @@ class CustomTokenizer:
             similarity = similarities[i, i]
             combined_encoded.append(gpt2_id if similarity > 0.5 else bert_id)
         return combined_encoded
+
+    def _evaluate_text(self, text):
+        # Placeholder method for evaluating text coherence
+        # This method should be implemented to use a language model to score the coherence of the text
+        return len(text)  # Example: using length as a simple heuristic
