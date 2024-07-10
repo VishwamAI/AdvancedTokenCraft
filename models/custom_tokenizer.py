@@ -29,7 +29,7 @@ class Model:
 class CustomTokenizer:
     special_tokens: Dict[str, int]
     num_reserved_special_tokens = 256
-    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+|<\|space\|>"
+    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\w\d]?\w+|\d{1,3}| ?[^\s\w\d]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+|<\|space\|>"
 
     def __init__(self, model_path: str):
         """
