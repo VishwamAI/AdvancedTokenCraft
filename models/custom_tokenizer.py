@@ -177,6 +177,7 @@ class CustomTokenizer:
                     # No whitespace found, split at max_len
                     substrings.append(current_substring)
                     current_substring = char
+
             else:
                 current_substring += char
 
@@ -184,6 +185,11 @@ class CustomTokenizer:
             if char == ' ' and len(current_substring) > 1 and current_substring[-2] == ' ':
                 substrings.append(current_substring[:-1])
                 current_substring = ' '
+
+            # Handle words longer than max_len
+            while len(current_substring) > max_len:
+                substrings.append(current_substring[:max_len])
+                current_substring = current_substring[max_len:]
 
         if current_substring:
             substrings.append(current_substring)
