@@ -176,40 +176,31 @@ class CustomTokenizer:
 
         substrings = []
         current_substring = ""
+        space_buffer = ""
+
         for char in s:
-            if len(current_substring) + (len('<|space|>') if char == ' ' else len(char)) > max_len:
-                # Find the last whitespace in the current substring
-                last_whitespace = current_substring.rfind(' ')
-                if last_whitespace != -1:
-                    # Split at the last whitespace
-                    substrings.append(current_substring[:last_whitespace])
-                    current_substring = current_substring[last_whitespace:] + char
-                else:
-                    # No whitespace found, split at max_len
+            if char == ' ':
+                space_buffer += char
+            else:
+                if space_buffer:
+                    if len(current_substring) + len(space_buffer) > max_len:
+                        substrings.append(current_substring)
+                        current_substring = ""
+                    current_substring += '<|space|>' * (len(space_buffer) // len(' '))
+                    space_buffer = ""
+
+                if len(current_substring) + len(char) > max_len:
                     substrings.append(current_substring)
                     current_substring = char
-
-            else:
-                current_substring += char
-
-            # Handle multiple consecutive spaces
-            if char == ' ':
-                if current_substring.strip() == '':
-                    substrings.append('<|space|>')
-                    current_substring = ''
-                elif len(current_substring) > 1 and current_substring[-2] == ' ':
-                    substrings.append('<|space|>')
-                    current_substring = ' '
                 else:
-                    current_substring = current_substring[:-1] + '<|space|>'
+                    current_substring += char
 
-        # Handle words longer than max_len
-        while len(current_substring) > max_len:
-            substrings.append(current_substring[:max_len])
-            current_substring = current_substring[max_len:]
+        if space_buffer:
+            current_substring += '<|space|>' * (len(space_buffer) // len(' '))
 
         if current_substring:
             substrings.append(current_substring)
+
         return substrings
 
 class ChatFormat:
