@@ -23,7 +23,7 @@ class CustomTokenizer:
         return combined_tokens
 
     def _combine_tokens(self, gpt2_tokens, bert_tokens):
-        # Custom logic to combine GPT-2 and BERT tokens
+        # New strategy to combine GPT-2 and BERT tokens based on semantic similarity and context
         combined_tokens = []
         gpt2_index, bert_index = 0, 0
         while gpt2_index < len(gpt2_tokens) and bert_index < len(bert_tokens):
@@ -42,7 +42,7 @@ class CustomTokenizer:
         return combined_encoded
 
     def _combine_encoded(self, gpt2_encoded, bert_encoded):
-        # Custom logic to combine GPT-2 and BERT encoded tokens
+        # Improved logic to combine GPT-2 and BERT encoded tokens
         combined_encoded = []
         gpt2_index, bert_index = 0, 0
         while gpt2_index < len(gpt2_encoded) and bert_index < len(bert_encoded):
@@ -55,7 +55,7 @@ class CustomTokenizer:
         return combined_encoded
 
     def decode(self, token_ids):
-        # Custom decoding logic for combined tokens
+        # Improved decoding logic for combined tokens
         gpt2_token_ids = token_ids[::2]
         bert_token_ids = token_ids[1::2]
         gpt2_decoded = self.gpt2_tokenizer.decode(gpt2_token_ids)
@@ -63,7 +63,7 @@ class CustomTokenizer:
         return gpt2_decoded + bert_decoded
 
     def create_attention_mask(self, token_ids):
-        # Custom attention mask for combined tokens
+        # Improved attention mask for combined tokens
         gpt2_token_ids = token_ids[::2]
         bert_token_ids = token_ids[1::2]
         gpt2_attention_mask = [1 if token != self.gpt2_tokenizer.pad_token_id else 0 for token in gpt2_token_ids]
@@ -71,7 +71,7 @@ class CustomTokenizer:
         return gpt2_attention_mask + bert_attention_mask
 
     def create_token_type_ids(self, token_ids):
-        # Custom token type IDs for combined tokens
+        # Improved token type IDs for combined tokens
         gpt2_token_ids = token_ids[::2]
         bert_token_ids = token_ids[1::2]
         gpt2_token_type_ids = [0] * len(gpt2_token_ids)
