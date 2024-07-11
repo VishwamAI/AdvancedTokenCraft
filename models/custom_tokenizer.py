@@ -190,7 +190,7 @@ class CustomTokenizer:
                     space_buffer = True
             else:
                 space_buffer = False
-                if len(current_substring) + len(token) > max_len:
+                if len(current_substring) + len(token) + (1 if current_substring else 0) > max_len:
                     if current_substring:
                         substrings.append(current_substring)
                     current_substring = token
@@ -209,7 +209,24 @@ class CustomTokenizer:
         if substrings and substrings[-1] == '<|space|>':
             substrings.pop()
 
-        return substrings
+        # Merge substrings to respect max_len
+        merged_substrings = []
+        current_substring = ""
+        for substring in substrings:
+            if len(current_substring) + len(substring) + (1 if current_substring else 0) > max_len:
+                if current_substring:
+                    merged_substrings.append(current_substring)
+                current_substring = substring
+            else:
+                if current_substring:
+                    current_substring += ' ' + substring if current_substring[-1].isalnum() and substring[0].isalnum() else substring
+                else:
+                    current_substring = substring
+
+        if current_substring:
+            merged_substrings.append(current_substring)
+
+        return merged_substrings
 
 class ChatFormat:
     def __init__(self, tokenizer: CustomTokenizer):
