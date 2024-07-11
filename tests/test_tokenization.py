@@ -19,7 +19,7 @@ class TestCustomTokenizer(unittest.TestCase):
 
     def test_tokenize_sentence_with_multiple_spaces(self):
         input_str = "This  is   a    test."
-        expected_output = ['This  is', 'a    test.']
+        expected_output = ['This', '<|space|>', 'is', '<|space|>', 'a', '<|space|>', 'test.']
         self.assertEqual(self.tokenizer._split_whitespaces_or_nonwhitespaces(input_str, 10), expected_output)
 
     def test_tokenize_empty_string(self):
