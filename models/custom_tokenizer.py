@@ -184,8 +184,6 @@ class CustomTokenizer:
             if token.isspace():
                 if space_count == 0:
                     substrings.append('<|space|>')
-                else:
-                    substrings.append('<|space|>')
                 space_count += 1
             else:
                 space_count = 0
