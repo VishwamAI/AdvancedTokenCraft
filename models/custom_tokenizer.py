@@ -190,7 +190,6 @@ class CustomTokenizer:
                 # Ensure consecutive spaces are treated as a single <|space|> token
                 if space_buffer and (len(substrings) == 0 or substrings[-1] != '<|space|>'):
                     substrings.append('<|space|>')
-                    space_buffer = False
             else:
                 if space_buffer:
                     space_buffer = False
@@ -198,28 +197,11 @@ class CustomTokenizer:
                     if current_substring:
                         substrings.append(current_substring)
                         current_substring = ""
-                    if len(token) > max_len:
-                        # Split the token into smaller parts, respecting word boundaries
-                        start = 0
-                        while start < len(token):
-                            end = min(start + max_len, len(token))
-                            if token[start:end].isspace():
-                                substrings.append('<|space|>')
-                            else:
-                                # Ensure we don't split words inappropriately
-                                if len(token[start:end]) < max_len or ' ' not in token[start:end]:
-                                    substrings.append(token[start:end])
-                                else:
-                                    # Split at the last space within the max_len limit
-                                    split_point = token[start:end].rfind(' ')
-                                    if split_point == -1:
-                                        split_point = max_len
-                                    substrings.append(token[start:start + split_point])
-                                    start += split_point
-                                    continue
-                            start = end
-                    else:
-                        current_substring = token
+                    start = 0
+                    while start < len(token):
+                        end = min(start + max_len, len(token))
+                        substrings.append(token[start:end])
+                        start = end
                 else:
                     current_substring += token
 
