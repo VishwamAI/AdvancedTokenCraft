@@ -29,7 +29,7 @@ class Model:
 class CustomTokenizer:
     special_tokens: Dict[str, int]
     num_reserved_special_tokens = 256
-    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|\w+|\d+|[^\s\w\d]+|<\|space\|>|\s{2,}|\s"
+    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|\w+|\d+|[^\s\w\d]+|<\|space\|>|\s+"
 
     def __init__(self, model_path: str):
         """
@@ -205,13 +205,13 @@ class CustomTokenizer:
                     space_buffer = False
                 if len(token) > max_len:
                     substrings.append(token)
-                elif len(current_substring) + len(token) + 1 > max_len:  # +1 to account for space between words
+                elif len(current_substring) + len(token) > max_len:  # Remove +1 to avoid extra space
                     if current_substring:
                         substrings.append(current_substring)
                     current_substring = token
                 else:
                     if current_substring:
-                        current_substring += ' ' + token  # Add space between words
+                        current_substring += token  # Remove space between words
                     else:
                         current_substring = token
 
