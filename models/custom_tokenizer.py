@@ -203,7 +203,7 @@ class CustomTokenizer:
                             substrings.append(current_substring)
                             current_substring = token
                         else:
-                            current_substring += token
+                            current_substring += ' ' + token if current_substring[-1].isalnum() and token.isalnum() else token
                     else:
                         current_substring = token
 
