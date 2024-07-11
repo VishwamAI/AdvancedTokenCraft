@@ -183,11 +183,7 @@ class CustomTokenizer:
             token = match.group()
             if token.isspace():
                 if space_buffer:
-                    if token == ' ':
-                        continue  # Skip adding single spaces when space_buffer is active
-                    else:
-                        substrings.append('<|space|>')
-                        space_buffer = False
+                    continue  # Skip adding single spaces when space_buffer is active
                 else:
                     if token == ' ':
                         space_buffer = True
