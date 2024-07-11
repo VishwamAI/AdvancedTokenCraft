@@ -203,11 +203,11 @@ class CustomTokenizer:
                     current_substring = ""
                 else:
                     if current_substring:
-                        if len(current_substring) + len(token) + 1 > max_len:
+                        if len(current_substring) + len(token) > max_len:
                             substrings.append(current_substring)
                             current_substring = token
                         else:
-                            current_substring += ' ' + token
+                            current_substring += token
                     else:
                         current_substring = token
 
@@ -222,9 +222,10 @@ class CustomTokenizer:
                 if current_substring:
                     merged_substrings.append(current_substring)
                     current_substring = ""
-                merged_substrings.append(substring)
+                if not merged_substrings or merged_substrings[-1] != '<|space|>':
+                    merged_substrings.append(substring)
             else:
-                if len(current_substring) + len(substring) + (1 if current_substring else 0) > max_len:
+                if len(current_substring) + len(substring) > max_len:
                     if current_substring:
                         merged_substrings.append(current_substring)
                     current_substring = substring
@@ -244,10 +245,6 @@ class CustomTokenizer:
                 start = 0
                 while start < len(substring):
                     end = min(start + max_len, len(substring))
-                    if end < len(substring) and substring[end].isalnum() and substring[end - 1].isalnum():
-                        end = substring.rfind(' ', start, end)
-                        if end == -1:
-                            end = start + max_len
                     final_substrings.append(substring[start:end])
                     start = end
             else:
