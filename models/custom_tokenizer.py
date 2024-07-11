@@ -196,12 +196,12 @@ class CustomTokenizer:
                 if len(current_substring) + len(token) > max_len:
                     if current_substring:
                         substrings.append(current_substring)
-                        current_substring = ""
                     start = 0
                     while start < len(token):
                         end = min(start + max_len, len(token))
                         substrings.append(token[start:end])
                         start = end
+                    current_substring = ""
                 else:
                     current_substring += token
 
