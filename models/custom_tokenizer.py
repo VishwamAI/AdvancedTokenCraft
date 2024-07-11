@@ -230,7 +230,7 @@ class CustomTokenizer:
                     current_substring = substring
                 else:
                     if current_substring:
-                        current_substring += substring
+                        current_substring += ' ' + substring
                     else:
                         current_substring = substring
 
