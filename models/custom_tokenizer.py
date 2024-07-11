@@ -191,7 +191,6 @@ class CustomTokenizer:
                     substrings.append('<|space|>')
                     space_count = 0
                 if len(token) > max_len:
-                    # Split token at word boundaries if possible
                     start = 0
                     while start < len(token):
                         end = min(start + max_len, len(token))
