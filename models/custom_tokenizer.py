@@ -204,6 +204,9 @@ class CustomTokenizer:
                 else:
                     current_substring += token
 
+        if space_buffer:
+            substrings.append('<|space|>')
+
         if current_substring:
             substrings.append(current_substring)
 
