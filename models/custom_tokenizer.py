@@ -162,7 +162,7 @@ class CustomTokenizer:
         """
         Splits a string into substrings based on whitespace or non-whitespace characters,
         ensuring that each substring does not exceed the specified maximum length and
-        respects word boundaries. Consecutive spaces are treated as a single <|space|> token.
+        respects word boundaries. Each space is treated as a separate <|space|> token.
         Tokens longer than max_len are appended directly to the substrings list without splitting.
 
         Args:
@@ -177,19 +177,15 @@ class CustomTokenizer:
 
         substrings = []
         current_substring = ""
-        space_buffer = False
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
             if token.isspace():
-                if not space_buffer:
-                    if current_substring:
-                        substrings.append(current_substring)
-                        current_substring = ""
-                    substrings.append('<|space|>')
-                    space_buffer = True
+                if current_substring:
+                    substrings.append(current_substring)
+                    current_substring = ""
+                substrings.append('<|space|>')
             else:
-                space_buffer = False
                 if len(current_substring) + len(token) + (1 if current_substring else 0) > max_len:
                     if current_substring:
                         substrings.append(current_substring)
