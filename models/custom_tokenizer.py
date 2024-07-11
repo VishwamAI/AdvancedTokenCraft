@@ -188,7 +188,7 @@ class CustomTokenizer:
                     if current_substring:
                         substrings.append(current_substring)
                         current_substring = ""
-                    substrings.append('<|space|>')
+                    substrings.append('<|space|>' * space_count)
                     space_count = 0
                 if len(current_substring) + len(token) + (1 if current_substring else 0) > max_len:
                     if current_substring:
@@ -200,6 +200,11 @@ class CustomTokenizer:
                     else:
                         current_substring = token
 
+        if space_count > 0:
+            if current_substring:
+                substrings.append(current_substring)
+            substrings.append('<|space|>' * space_count)
+
         if current_substring:
             substrings.append(current_substring)
 
@@ -207,7 +212,7 @@ class CustomTokenizer:
         merged_substrings = []
         current_substring = ""
         for substring in substrings:
-            if substring == '<|space|>':
+            if substring.startswith('<|space|>'):
                 if current_substring:
                     merged_substrings.append(current_substring)
                     current_substring = ""
