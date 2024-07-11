@@ -194,10 +194,6 @@ class CustomTokenizer:
                     start = 0
                     while start < len(token):
                         end = min(start + max_len, len(token))
-                        if end < len(token) and token[end].isalnum() and token[end - 1].isalnum():
-                            end = token.rfind(' ', start, end)
-                            if end == -1:
-                                end = start + max_len
                         substrings.append(token[start:end])
                         start = end
                     current_substring = ""
