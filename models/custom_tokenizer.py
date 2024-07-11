@@ -175,18 +175,18 @@ class CustomTokenizer:
         if not isinstance(max_len, int) or max_len <= 0:
             raise ValueError("max_len must be a positive integer.")
 
-        substrings = []
-        current_substring = ""
+        tokens = []
+        current_token = ""
         space_encountered = False
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
             if token.isspace():
                 if not space_encountered:
-                    if current_substring:
-                        substrings.append(current_substring)
-                        current_substring = ""
-                    substrings.append('<|space|>')
+                    if current_token:
+                        tokens.append(current_token)
+                        current_token = ""
+                    tokens.append('<|space|>')
                     space_encountered = True
             else:
                 space_encountered = False
@@ -194,59 +194,46 @@ class CustomTokenizer:
                     start = 0
                     while start < len(token):
                         end = min(start + max_len, len(token))
-                        substrings.append(token[start:end])
+                        tokens.append(token[start:end])
                         start = end
-                    current_substring = ""
                 else:
-                    if current_substring:
-                        if len(current_substring) + len(token) > max_len:
-                            substrings.append(current_substring)
-                            current_substring = token
+                    if current_token:
+                        if len(current_token) + len(token) > max_len:
+                            tokens.append(current_token)
+                            current_token = token
                         else:
-                            current_substring += token
+                            current_token += token
                     else:
-                        current_substring = token
+                        current_token = token
 
-        if current_substring:
-            substrings.append(current_substring)
+        if current_token:
+            tokens.append(current_token)
 
-        # Merge substrings to respect max_len
-        merged_substrings = []
-        current_substring = ""
-        for substring in substrings:
-            if substring == '<|space|>':
-                if current_substring:
-                    merged_substrings.append(current_substring)
-                    current_substring = ""
-                if not merged_substrings or merged_substrings[-1] != '<|space|>':
-                    merged_substrings.append(substring)
+        # Merge tokens to respect max_len
+        merged_tokens = []
+        current_token = ""
+        for token in tokens:
+            if token == '<|space|>':
+                if current_token:
+                    merged_tokens.append(current_token)
+                    current_token = ""
+                if not merged_tokens or merged_tokens[-1] != '<|space|>':
+                    merged_tokens.append(token)
             else:
-                if len(current_substring) + len(substring) > max_len:
-                    if current_substring:
-                        merged_substrings.append(current_substring)
-                    current_substring = substring
+                if len(current_token) + len(token) > max_len:
+                    if current_token:
+                        merged_tokens.append(current_token)
+                    current_token = token
                 else:
-                    if current_substring:
-                        current_substring += substring
+                    if current_token:
+                        current_token += token
                     else:
-                        current_substring = substring
+                        current_token = token
 
-        if current_substring:
-            merged_substrings.append(current_substring)
+        if current_token:
+            merged_tokens.append(current_token)
 
-        # Ensure no merged substring exceeds max_len
-        final_substrings = []
-        for substring in merged_substrings:
-            if len(substring) > max_len:
-                start = 0
-                while start < len(substring):
-                    end = min(start + max_len, len(substring))
-                    final_substrings.append(substring[start:end])
-                    start = end
-            else:
-                final_substrings.append(substring)
-
-        return final_substrings
+        return merged_tokens
 
 class ChatFormat:
     def __init__(self, tokenizer: CustomTokenizer):
