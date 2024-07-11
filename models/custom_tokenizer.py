@@ -190,7 +190,8 @@ class CustomTokenizer:
                         current_substring = ""
                     substrings.append('<|space|>')
                 elif space_count == 1:
-                    current_substring += ' '
+                    if current_substring and not current_substring.endswith(' '):
+                        current_substring += ' '
                 space_count = 0
                 if len(token) > max_len:
                     for i in range(0, len(token), max_len):
@@ -202,7 +203,7 @@ class CustomTokenizer:
                             substrings.append(current_substring)
                             current_substring = token
                         else:
-                            current_substring += ' ' + token if current_substring[-1].isalnum() and token.isalnum() else token
+                            current_substring += token if current_substring[-1].isalnum() and token.isalnum() else token
                     else:
                         current_substring = token
 
@@ -211,7 +212,8 @@ class CustomTokenizer:
                 substrings.append(current_substring)
             substrings.append('<|space|>')
         elif space_count == 1:
-            current_substring += ' '
+            if current_substring and not current_substring.endswith(' '):
+                current_substring += ' '
 
         if current_substring:
             substrings.append(current_substring)
@@ -233,7 +235,7 @@ class CustomTokenizer:
                     current_substring = substring
                 else:
                     if current_substring:
-                        current_substring += ' ' + substring if current_substring[-1].isalnum() and substring[0].isalnum() else substring
+                        current_substring += substring if current_substring[-1].isalnum() and substring[0].isalnum() else substring
                     else:
                         current_substring = substring
 
