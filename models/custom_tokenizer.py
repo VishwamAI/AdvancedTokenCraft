@@ -180,7 +180,10 @@ class CustomTokenizer:
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
-            if token.isspace():
+            if token == ' ':
+                if current_substring:
+                    substrings.append(current_substring)
+                    current_substring = ""
                 substrings.append('<|space|>')
             else:
                 if len(token) > max_len:
