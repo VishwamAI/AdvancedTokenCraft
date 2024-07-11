@@ -189,7 +189,7 @@ class CustomTokenizer:
                         substrings.append(current_substring)
                         current_substring = ""
                     substrings.append('<|space|>')
-                space_count = 0
+                    space_count = 0
                 if len(token) > max_len:
                     for i in range(0, len(token), max_len):
                         substrings.append(token[i:i+max_len])
