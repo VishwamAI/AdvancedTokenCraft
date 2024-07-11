@@ -210,11 +210,12 @@ class CustomTokenizer:
                         substrings.append(current_substring)
                     current_substring = token
                 else:
-                    if current_substring and not current_substring[-1].isspace() and not token.isspace():
-                        current_substring += token  # Concatenate without adding space
+                    if current_substring:
+                        if current_substring[-1].isalnum() and token.isalnum():
+                            current_substring += ' ' + token  # Add space between words
+                        else:
+                            current_substring += token  # Concatenate without adding space
                     else:
-                        if current_substring:
-                            substrings.append(current_substring)
                         current_substring = token
 
         if current_substring:
