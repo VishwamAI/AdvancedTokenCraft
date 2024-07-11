@@ -229,7 +229,7 @@ class CustomTokenizer:
                     current_substring = substring
                 else:
                     if current_substring:
-                        current_substring += substring if current_substring[-1].isalnum() and substring[0].isalnum() else substring
+                        current_substring += ' ' + substring if current_substring[-1].isalnum() and substring[0].isalnum() else substring
                     else:
                         current_substring = substring
 
