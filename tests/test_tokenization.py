@@ -1,5 +1,5 @@
 import unittest
-from AdvancedTokenCraft.models.custom_tokenizer import CustomTokenizer
+from ..models.custom_tokenizer import CustomTokenizer
 
 class TestCustomTokenizer(unittest.TestCase):
 
