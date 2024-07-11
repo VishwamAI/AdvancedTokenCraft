@@ -187,6 +187,10 @@ class CustomTokenizer:
                     if current_substring:
                         substrings.append(current_substring)
                         current_substring = ""
+                # Ensure consecutive spaces are treated as a single <|space|> token
+                if space_buffer and current_substring == "":
+                    substrings.append('<|space|>')
+                    space_buffer = False
             else:
                 if space_buffer:
                     substrings.append('<|space|>')
@@ -203,7 +207,17 @@ class CustomTokenizer:
                             if token[start:end].isspace():
                                 substrings.append('<|space|>')
                             else:
-                                substrings.append(token[start:end])
+                                # Ensure we don't split words inappropriately
+                                if len(token[start:end]) < max_len or ' ' not in token[start:end]:
+                                    substrings.append(token[start:end])
+                                else:
+                                    # Split at the last space within the max_len limit
+                                    split_point = token[start:end].rfind(' ')
+                                    if split_point == -1:
+                                        split_point = max_len
+                                    substrings.append(token[start:start + split_point])
+                                    start += split_point
+                                    continue
                             start = end
                     else:
                         current_substring = token
