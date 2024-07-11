@@ -216,7 +216,7 @@ class CustomTokenizer:
                     temp_substring = ""
                 if not final_substrings or final_substrings[-1] != '<|space|>':
                     final_substrings.append(substring)
-            elif len(temp_substring) + len(substring) + (1 if temp_substring else 0) <= max_len:
+            elif len(temp_substring) + len(substring) <= max_len:
                 if temp_substring:
                     temp_substring += substring
                 else:
