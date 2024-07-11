@@ -217,7 +217,8 @@ class CustomTokenizer:
                 if current_substring:
                     merged_substrings.append(current_substring)
                     current_substring = ""
-                merged_substrings.append(substring)
+                if not merged_substrings or merged_substrings[-1] != '<|space|>':
+                    merged_substrings.append(substring)
             else:
                 if len(current_substring) + len(substring) + (1 if current_substring else 0) > max_len:
                     if current_substring:
