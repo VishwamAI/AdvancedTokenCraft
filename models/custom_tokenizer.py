@@ -217,11 +217,13 @@ class CustomTokenizer:
                     merged_substrings.append(temp_substring)
                     temp_substring = ""
                 merged_substrings.append(substring)
-            elif len(temp_substring) + len(substring) > max_len:
+            elif len(temp_substring) + len(substring) + 1 > max_len:
                 if temp_substring:
                     merged_substrings.append(temp_substring)
                 temp_substring = substring
             else:
+                if temp_substring:
+                    temp_substring += ' '
                 temp_substring += substring
 
         if temp_substring:
