@@ -29,7 +29,7 @@ class Model:
 class CustomTokenizer:
     special_tokens: Dict[str, int]
     num_reserved_special_tokens = 256
-    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|\w+|\d+|[^\s\w\d]+|<\|space\|>|\s+"
+    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|\w+|\d+|[^\s\w\d]+|<\|space\|>|\s{2,}|\s"
 
     def __init__(self, model_path: str):
         """
@@ -181,15 +181,22 @@ class CustomTokenizer:
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
-            if token.isspace():
+            if token == ' ':
+                if space_buffer:
+                    current_substring += token
+                else:
+                    space_buffer = True
+                    if current_substring:
+                        substrings.append(current_substring)
+                        current_substring = ""
+                    substrings.append(' ')
+            elif token == '<|space|>':
                 if not space_buffer:
                     space_buffer = True
                     if current_substring:
                         substrings.append(current_substring)
                         current_substring = ""
-                    # Ensure consecutive spaces are treated as a single <|space|> token
-                    if len(substrings) == 0 or substrings[-1] != '<|space|>':
-                        substrings.append('<|space|>')
+                    substrings.append('<|space|>')
             else:
                 if space_buffer:
                     space_buffer = False
