@@ -163,7 +163,7 @@ class CustomTokenizer:
         Splits a string into substrings based on whitespace or non-whitespace characters,
         ensuring that each substring does not exceed the specified maximum length and
         respects word boundaries. Consecutive spaces are treated as a single <|space|> token.
-        Tokens longer than max_len are appended directly to the substrings list without splitting.
+        Tokens longer than max_len are split into chunks that respect max_len.
 
         Args:
         s (str): The input string to be split.
@@ -188,27 +188,33 @@ class CustomTokenizer:
                     if current_substring:
                         substrings.append(current_substring)
                         current_substring = ""
-                    if not substrings or substrings[-1] != '<|space|>':
-                        substrings.append('<|space|>')
+                    substrings.append('<|space|>')
                     space_count = 0
-                if len(current_substring) + len(token) + (1 if current_substring else 0) > max_len:
-                    if current_substring:
-                        substrings.append(current_substring)
-                    current_substring = token
+                if len(token) > max_len:
+                    start = 0
+                    while start < len(token):
+                        end = min(start + max_len, len(token))
+                        if end < len(token) and token[end].isalnum() and token[end - 1].isalnum():
+                            end = token.rfind(' ', start, end)
+                            if end == -1:
+                                end = start + max_len
+                        substrings.append(token[start:end])
+                        start = end
+                    current_substring = ""
                 else:
                     if current_substring:
-                        current_substring += token if current_substring[-1].isalnum() and token.isalnum() else token
+                        if len(current_substring) + len(token) + 1 > max_len:
+                            substrings.append(current_substring)
+                            current_substring = token
+                        else:
+                            current_substring += ' ' + token if current_substring[-1].isalnum() and token.isalnum() else token
                     else:
                         current_substring = token
 
         if space_count > 0:
             if current_substring:
                 substrings.append(current_substring)
-            if not substrings or substrings[-1] != '<|space|>':
-                substrings.append('<|space|>')
-
-        if current_substring:
-            substrings.append(current_substring)
+            substrings.append('<|space|>')
 
         # Merge substrings to respect max_len
         merged_substrings = []
@@ -227,14 +233,30 @@ class CustomTokenizer:
                     current_substring = substring
                 else:
                     if current_substring:
-                        current_substring += substring if current_substring[-1].isalnum() and substring[0].isalnum() else substring
+                        current_substring += ' ' + substring if current_substring[-1].isalnum() and substring.isalnum() else substring
                     else:
                         current_substring = substring
 
         if current_substring:
             merged_substrings.append(current_substring)
 
-        return merged_substrings
+        # Ensure no merged substring exceeds max_len
+        final_substrings = []
+        for substring in merged_substrings:
+            if len(substring) > max_len:
+                start = 0
+                while start < len(substring):
+                    end = min(start + max_len, len(substring))
+                    if end < len(substring) and substring[end].isalnum() and substring[end - 1].isalnum():
+                        end = substring.rfind(' ', start, end)
+                        if end == -1:
+                            end = start + max_len
+                    final_substrings.append(substring[start:end])
+                    start = end
+            else:
+                final_substrings.append(substring)
+
+        return final_substrings
 
 class ChatFormat:
     def __init__(self, tokenizer: CustomTokenizer):
