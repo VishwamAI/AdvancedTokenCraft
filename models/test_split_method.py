@@ -1,4 +1,4 @@
-from custom_tokenizer import CustomTokenizer
+from models.custom_tokenizer import CustomTokenizer
 
 # Initialize the tokenizer with a placeholder vocabulary file path
 tokenizer = CustomTokenizer("vocab_file_path_placeholder")

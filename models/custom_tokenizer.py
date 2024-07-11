@@ -177,51 +177,64 @@ class CustomTokenizer:
 
         substrings = []
         current_substring = ""
-        space_buffer = False
+        space_count = 0
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
             if token.isspace():
-                if space_buffer:
-                    continue  # Skip adding single spaces when space_buffer is active
-                else:
-                    if token == ' ':
-                        space_buffer = True
-                    else:
-                        if current_substring:
-                            substrings.append(current_substring)
-                            current_substring = ""
-                        substrings.append('<|space|>')
-                        space_buffer = True
-            elif token == '<|space|>':
-                if not space_buffer:
-                    space_buffer = True
+                space_count += 1
+            else:
+                if space_count > 0:
                     if current_substring:
                         substrings.append(current_substring)
                         current_substring = ""
-                    substrings.append('<|space|>')
-            else:
-                if space_buffer:
-                    space_buffer = False
-                if len(token) > max_len:
-                    substrings.append(token)
-                elif len(current_substring) + len(token) > max_len:
+                    if not substrings or substrings[-1] != '<|space|>':
+                        substrings.append('<|space|>')
+                    space_count = 0
+                if len(current_substring) + len(token) + (1 if current_substring else 0) > max_len:
                     if current_substring:
                         substrings.append(current_substring)
                     current_substring = token
                 else:
                     if current_substring:
-                        if current_substring[-1].isalnum() and token.isalnum():
-                            current_substring += ' ' + token  # Add space between words
-                        else:
-                            current_substring += token  # Concatenate without adding space
+                        current_substring += token if current_substring[-1].isalnum() and token.isalnum() else token
                     else:
                         current_substring = token
+
+        if space_count > 0:
+            if current_substring:
+                substrings.append(current_substring)
+            if not substrings or substrings[-1] != '<|space|>':
+                substrings.append('<|space|>')
 
         if current_substring:
             substrings.append(current_substring)
 
-        return substrings
+        # Merge substrings to respect max_len
+        merged_substrings = []
+        current_substring = ""
+        for substring in substrings:
+            if substring == '<|space|>':
+                if current_substring:
+                    merged_substrings.append(current_substring)
+                    current_substring = ""
+                if not merged_substrings or merged_substrings[-1] != '<|space|>':
+                    merged_substrings.append(substring)
+            else:
+                if len(current_substring) + len(substring) + (1 if current_substring else 0) > max_len:
+                    if current_substring:
+                        merged_substrings.append(current_substring)
+                    current_substring = substring
+                else:
+                    if current_substring:
+                        current_substring += substring if current_substring[-1].isalnum() and substring[0].isalnum() else substring
+                    else:
+                        current_substring = substring
+
+        if current_substring:
+            merged_substrings.append(current_substring)
+
+        return merged_substrings
 
 class ChatFormat:
     def __init__(self, tokenizer: CustomTokenizer):
