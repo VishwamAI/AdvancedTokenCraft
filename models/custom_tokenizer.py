@@ -205,13 +205,13 @@ class CustomTokenizer:
                     space_buffer = False
                 if len(token) > max_len:
                     substrings.append(token)
-                elif len(current_substring) + len(token) > max_len:  # Remove +1 to avoid extra space
+                elif len(current_substring) + len(token) > max_len:
                     if current_substring:
                         substrings.append(current_substring)
                     current_substring = token
                 else:
                     if current_substring:
-                        current_substring += token  # Remove space between words
+                        current_substring += ' ' + token  # Add space between words
                     else:
                         current_substring = token
 
