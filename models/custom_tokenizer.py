@@ -184,13 +184,15 @@ class CustomTokenizer:
             if token.isspace():
                 space_count += 1
             else:
-                if space_count > 0:
+                if space_count > 1:
                     if current_substring:
                         substrings.append(current_substring)
                         current_substring = ""
-                    if not substrings or substrings[-1] != '<|space|>':
-                        substrings.append('<|space|>')
-                    space_count = 0
+                    substrings.append('<|space|>')
+                elif space_count == 1:
+                    if current_substring:
+                        current_substring += ' '
+                space_count = 0
                 if len(current_substring) + len(token) + (1 if current_substring else 0) > max_len:
                     if current_substring:
                         substrings.append(current_substring)
@@ -206,11 +208,13 @@ class CustomTokenizer:
                     else:
                         current_substring = token
 
-        if space_count > 0:
+        if space_count > 1:
             if current_substring:
                 substrings.append(current_substring)
-            if not substrings or substrings[-1] != '<|space|>':
-                substrings.append('<|space|>')
+            substrings.append('<|space|>')
+        elif space_count == 1:
+            if current_substring:
+                current_substring += ' '
 
         if current_substring:
             substrings.append(current_substring)
