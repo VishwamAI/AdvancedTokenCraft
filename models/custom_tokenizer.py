@@ -180,7 +180,6 @@ class CustomTokenizer:
         space_count = 0
 
         for match in re.finditer(self.pat_str, s):
-            space_count = 0
             token = match.group()
             if token.isspace():
                 space_count += 1
