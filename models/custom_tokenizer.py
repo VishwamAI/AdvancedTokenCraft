@@ -191,8 +191,16 @@ class CustomTokenizer:
                     substrings.append('<|space|>')
                     space_count = 0
                 if len(token) > max_len:
-                    for i in range(0, len(token), max_len):
-                        substrings.append(token[i:i+max_len])
+                    # Split token at word boundaries if possible
+                    start = 0
+                    while start < len(token):
+                        end = min(start + max_len, len(token))
+                        if end < len(token) and token[end].isalnum() and token[end - 1].isalnum():
+                            end = token.rfind(' ', start, end)
+                            if end == -1:
+                                end = start + max_len
+                        substrings.append(token[start:end])
+                        start = end
                     current_substring = ""
                 else:
                     if current_substring:
@@ -237,8 +245,15 @@ class CustomTokenizer:
         final_substrings = []
         for substring in merged_substrings:
             if len(substring) > max_len:
-                for i in range(0, len(substring), max_len):
-                    final_substrings.append(substring[i:i+max_len])
+                start = 0
+                while start < len(substring):
+                    end = min(start + max_len, len(substring))
+                    if end < len(substring) and substring[end].isalnum() and substring[end - 1].isalnum():
+                        end = substring.rfind(' ', start, end)
+                        if end == -1:
+                            end = start + max_len
+                    final_substrings.append(substring[start:end])
+                    start = end
             else:
                 final_substrings.append(substring)
 
