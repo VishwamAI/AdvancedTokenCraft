@@ -200,7 +200,10 @@ class CustomTokenizer:
                         substrings.append(current_substring)
                     current_substring = token
                 else:
-                    current_substring += token
+                    if current_substring:
+                        current_substring += token
+                    else:
+                        current_substring = token
 
         if current_substring:
             substrings.append(current_substring)
