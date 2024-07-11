@@ -207,7 +207,7 @@ class CustomTokenizer:
                             substrings.append(current_substring)
                             current_substring = token
                         else:
-                            current_substring += ' ' + token
+                            current_substring += token
                     else:
                         current_substring = token
 
