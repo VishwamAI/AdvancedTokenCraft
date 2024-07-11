@@ -193,14 +193,15 @@ class CustomTokenizer:
             else:
                 if space_buffer:
                     space_buffer = False
-                if len(current_substring) + len(token) + 1 > max_len:
+                if len(current_substring) + len(token) > max_len:
                     if current_substring:
                         substrings.append(current_substring)
                     current_substring = token
                 else:
                     if current_substring:
-                        current_substring += ' '
-                    current_substring += token
+                        current_substring += token
+                    else:
+                        current_substring = token
 
         if current_substring:
             substrings.append(current_substring)
