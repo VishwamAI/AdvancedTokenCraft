@@ -198,11 +198,11 @@ class CustomTokenizer:
                         start = end
                 else:
                     if current_token:
-                        if len(current_token) + len(token) + 1 > max_len:  # +1 to account for space
+                        if len(current_token) + len(token) > max_len:
                             tokens.append(current_token)
                             current_token = token
                         else:
-                            current_token += token  # Do not add space between words
+                            current_token += token
                     else:
                         current_token = token
 
@@ -220,13 +220,13 @@ class CustomTokenizer:
                 if not merged_tokens or merged_tokens[-1] != '<|space|>':
                     merged_tokens.append(token)
             else:
-                if len(current_token) + len(token) + 1 > max_len:  # +1 to account for space
+                if len(current_token) + len(token) > max_len:
                     if current_token:
                         merged_tokens.append(current_token)
                     current_token = token
                 else:
                     if current_token:
-                        current_token += token  # Do not add space between words
+                        current_token += token
                     else:
                         current_token = token
 
