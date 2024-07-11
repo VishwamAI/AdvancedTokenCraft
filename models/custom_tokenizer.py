@@ -202,7 +202,7 @@ class CustomTokenizer:
                             tokens.append(current_token)
                             current_token = token
                         else:
-                            current_token += ' ' + token  # Add space between words
+                            current_token += token  # Do not add space between words
                     else:
                         current_token = token
 
@@ -226,7 +226,7 @@ class CustomTokenizer:
                     current_token = token
                 else:
                     if current_token:
-                        current_token += ' ' + token  # Add space between words
+                        current_token += token  # Do not add space between words
                     else:
                         current_token = token
 
