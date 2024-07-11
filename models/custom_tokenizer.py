@@ -187,7 +187,7 @@ class CustomTokenizer:
                         tokens.append(current_token)
                         current_token = ""
                     tokens.append('<|space|>')
-                    space_encountered = True
+                space_encountered = True
             else:
                 space_encountered = False
                 if len(token) > max_len:
