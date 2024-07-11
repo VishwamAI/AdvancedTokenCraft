@@ -213,15 +213,21 @@ class CustomTokenizer:
         merged_substrings = []
         current_substring = ""
         for substring in substrings:
-            if len(current_substring) + len(substring) + (1 if current_substring else 0) > max_len:
+            if substring == '<|space|>':
                 if current_substring:
                     merged_substrings.append(current_substring)
-                current_substring = substring
+                    current_substring = ""
+                merged_substrings.append(substring)
             else:
-                if current_substring:
-                    current_substring += ' ' + substring if current_substring[-1].isalnum() and substring[0].isalnum() else substring
-                else:
+                if len(current_substring) + len(substring) + (1 if current_substring else 0) > max_len:
+                    if current_substring:
+                        merged_substrings.append(current_substring)
                     current_substring = substring
+                else:
+                    if current_substring:
+                        current_substring += ' ' + substring if current_substring[-1].isalnum() and substring[0].isalnum() else substring
+                    else:
+                        current_substring = substring
 
         if current_substring:
             merged_substrings.append(current_substring)
