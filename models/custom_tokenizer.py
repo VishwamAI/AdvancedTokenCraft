@@ -228,9 +228,6 @@ class CustomTokenizer:
                 else:
                     if current_substring:
                         current_substring += substring if current_substring[-1].isalnum() and substring[0].isalnum() else substring
-            if current_substring:
-                merged_substrings.append(current_substring)
-                current_substring = ""
 
         if current_substring:
             merged_substrings.append(current_substring)
