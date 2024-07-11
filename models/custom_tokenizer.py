@@ -196,9 +196,15 @@ class CustomTokenizer:
                         substrings.append(current_substring)
                         current_substring = ""
                     if len(token) > max_len:
-                        # Split the token into smaller parts
-                        for i in range(0, len(token), max_len):
-                            substrings.append(token[i:i + max_len])
+                        # Split the token into smaller parts, respecting word boundaries
+                        start = 0
+                        while start < len(token):
+                            end = min(start + max_len, len(token))
+                            if token[start:end].isspace():
+                                substrings.append('<|space|>')
+                            else:
+                                substrings.append(token[start:end])
+                            start = end
                     else:
                         current_substring = token
                 else:
