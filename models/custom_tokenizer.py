@@ -198,7 +198,11 @@ class CustomTokenizer:
                     current_substring = ""
                 else:
                     if current_substring:
-                        current_substring += ' ' + token if current_substring[-1].isalnum() and token.isalnum() else token
+                        if len(current_substring) + len(token) + 1 > max_len:
+                            substrings.append(current_substring)
+                            current_substring = token
+                        else:
+                            current_substring += ' ' + token if current_substring[-1].isalnum() and token.isalnum() else token
                     else:
                         current_substring = token
 
@@ -236,7 +240,16 @@ class CustomTokenizer:
         if current_substring:
             merged_substrings.append(current_substring)
 
-        return merged_substrings
+        # Ensure no merged substring exceeds max_len
+        final_substrings = []
+        for substring in merged_substrings:
+            if len(substring) > max_len:
+                for i in range(0, len(substring), max_len):
+                    final_substrings.append(substring[i:i+max_len])
+            else:
+                final_substrings.append(substring)
+
+        return final_substrings
 
 class ChatFormat:
     def __init__(self, tokenizer: CustomTokenizer):
