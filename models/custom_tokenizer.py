@@ -182,10 +182,12 @@ class CustomTokenizer:
         for match in re.finditer(self.pat_str, s):
             token = match.group()
             if token.isspace():
+                if space_count == 0:
+                    substrings.append('<|space|>')
+                else:
+                    substrings.append('<|space|>')
                 space_count += 1
             else:
-                if space_count > 1:
-                    substrings.append('<|space|>')
                 space_count = 0
                 if len(token) > max_len:
                     start = 0
