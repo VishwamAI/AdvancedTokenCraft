@@ -208,7 +208,26 @@ class CustomTokenizer:
         if current_substring:
             substrings.append(current_substring)
 
-        return substrings
+        # Merge substrings to respect max_len and avoid splitting words inappropriately
+        merged_substrings = []
+        temp_substring = ""
+        for substring in substrings:
+            if substring == '<|space|>':
+                if temp_substring:
+                    merged_substrings.append(temp_substring)
+                    temp_substring = ""
+                merged_substrings.append(substring)
+            elif len(temp_substring) + len(substring) > max_len:
+                if temp_substring:
+                    merged_substrings.append(temp_substring)
+                temp_substring = substring
+            else:
+                temp_substring += substring
+
+        if temp_substring:
+            merged_substrings.append(temp_substring)
+
+        return merged_substrings
 
 class ChatFormat:
     def __init__(self, tokenizer: CustomTokenizer):
