@@ -198,7 +198,7 @@ class CustomTokenizer:
                     current_substring = ""
                 else:
                     if current_substring:
-                        current_substring += token if current_substring[-1].isalnum() and token.isalnum() else token
+                        current_substring += ' ' + token if current_substring[-1].isalnum() and token.isalnum() else token
                     else:
                         current_substring = token
 
