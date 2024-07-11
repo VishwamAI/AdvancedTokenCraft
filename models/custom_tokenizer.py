@@ -29,7 +29,7 @@ class Model:
 class CustomTokenizer:
     special_tokens: Dict[str, int]
     num_reserved_special_tokens = 256
-    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|\w+|\d+|[^\s\w\d]+|<\|space\|>|\s+"
+    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|\w+|\d+|[^\s\w\d]|<\|space\|>|\s+"
 
     def __init__(self, model_path: str):
         """
@@ -210,9 +210,11 @@ class CustomTokenizer:
                         substrings.append(current_substring)
                     current_substring = token
                 else:
-                    if current_substring:
-                        current_substring += ' ' + token  # Add space between words
+                    if current_substring and not current_substring[-1].isspace() and not token.isspace():
+                        current_substring += token  # Concatenate without adding space
                     else:
+                        if current_substring:
+                            substrings.append(current_substring)
                         current_substring = token
 
         if current_substring:
