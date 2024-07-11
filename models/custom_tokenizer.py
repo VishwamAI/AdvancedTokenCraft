@@ -188,7 +188,7 @@ class CustomTokenizer:
                         substrings.append(current_substring)
                         current_substring = ""
                 # Ensure consecutive spaces are treated as a single <|space|> token
-                if space_buffer and (len(substrings) == 0 or substrings[-1] != '<|space|>'):
+                if len(substrings) == 0 or substrings[-1] != '<|space|>':
                     substrings.append('<|space|>')
             else:
                 if space_buffer:
