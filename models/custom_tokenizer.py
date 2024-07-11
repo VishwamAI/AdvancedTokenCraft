@@ -29,7 +29,7 @@ class Model:
 class CustomTokenizer:
     special_tokens: Dict[str, int]
     num_reserved_special_tokens = 256
-    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|\w+|\d+|[^\s\w\d]|<\|space\|>|\s"
+    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|\w+|\d+|[^\s\w\d]|<\|space\|>|\s+"
 
     def __init__(self, model_path: str):
         """
@@ -181,7 +181,7 @@ class CustomTokenizer:
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
-            if token == ' ':
+            if token.isspace():
                 if not space_encountered:
                     if current_substring:
                         substrings.append(current_substring)
@@ -207,7 +207,7 @@ class CustomTokenizer:
                             substrings.append(current_substring)
                             current_substring = token
                         else:
-                            current_substring += ' ' + token if current_substring[-1].isalnum() and token.isalnum() else token
+                            current_substring += token
                     else:
                         current_substring = token
 
@@ -230,7 +230,7 @@ class CustomTokenizer:
                     current_substring = substring
                 else:
                     if current_substring:
-                        current_substring += substring if current_substring[-1].isalnum() and substring.isalnum() else substring
+                        current_substring += substring
                     else:
                         current_substring = substring
 
