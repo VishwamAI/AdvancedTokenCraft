@@ -177,15 +177,19 @@ class CustomTokenizer:
 
         substrings = []
         current_substring = ""
+        space_buffer = False
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
             if token.isspace():
-                if current_substring:
-                    substrings.append(current_substring)
-                    current_substring = ""
-                substrings.append('<|space|>')
+                if not space_buffer:
+                    if current_substring:
+                        substrings.append(current_substring)
+                        current_substring = ""
+                    substrings.append('<|space|>')
+                    space_buffer = True
             else:
+                space_buffer = False
                 if len(current_substring) + len(token) + (1 if current_substring else 0) > max_len:
                     if current_substring:
                         substrings.append(current_substring)
