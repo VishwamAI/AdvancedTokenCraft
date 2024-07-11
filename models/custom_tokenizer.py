@@ -198,11 +198,11 @@ class CustomTokenizer:
                         start = end
                 else:
                     if current_token:
-                        if len(current_token) + len(token) > max_len:
+                        if len(current_token) + len(token) + 1 > max_len:  # +1 to account for space
                             tokens.append(current_token)
                             current_token = token
                         else:
-                            current_token += token
+                            current_token += ' ' + token  # Add space between words
                     else:
                         current_token = token
 
