@@ -181,15 +181,22 @@ class CustomTokenizer:
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
-            if token == ' ':
+            if token.isspace():
                 if space_buffer:
-                    current_substring += token
+                    if token == ' ':
+                        current_substring += token
+                    else:
+                        substrings.append('<|space|>')
+                        space_buffer = False
                 else:
-                    space_buffer = True
-                    if current_substring:
-                        substrings.append(current_substring)
-                        current_substring = ""
-                    substrings.append(' ')
+                    if token == ' ':
+                        current_substring += token
+                    else:
+                        if current_substring:
+                            substrings.append(current_substring)
+                            current_substring = ""
+                        substrings.append('<|space|>')
+                        space_buffer = True
             elif token == '<|space|>':
                 if not space_buffer:
                     space_buffer = True
