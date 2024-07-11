@@ -213,8 +213,11 @@ class CustomTokenizer:
                     if current_substring:
                         if current_substring[-1].isalnum() and token.isalnum():
                             current_substring += ' ' + token  # Add space between words
+                        elif not current_substring[-1].isalnum() and not token.isalnum():
+                            current_substring += token  # Concatenate special characters without adding space
                         else:
-                            current_substring += token  # Concatenate without adding space
+                            substrings.append(current_substring)
+                            current_substring = token
                     else:
                         current_substring = token
 
