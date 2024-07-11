@@ -184,13 +184,13 @@ class CustomTokenizer:
             if token.isspace():
                 if space_buffer:
                     if token == ' ':
-                        current_substring += token
+                        continue  # Skip adding single spaces when space_buffer is active
                     else:
                         substrings.append('<|space|>')
                         space_buffer = False
                 else:
                     if token == ' ':
-                        current_substring += token
+                        space_buffer = True
                     else:
                         if current_substring:
                             substrings.append(current_substring)
