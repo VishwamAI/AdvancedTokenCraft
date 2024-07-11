@@ -184,14 +184,11 @@ class CustomTokenizer:
             if token.isspace():
                 space_count += 1
             else:
-                if space_count > 1:
+                if space_count > 0:
                     if current_substring:
                         substrings.append(current_substring)
                         current_substring = ""
                     substrings.append('<|space|>')
-                elif space_count == 1:
-                    if current_substring and not current_substring.endswith(' '):
-                        current_substring += ' '
                 space_count = 0
                 if len(token) > max_len:
                     for i in range(0, len(token), max_len):
@@ -203,20 +200,14 @@ class CustomTokenizer:
                             substrings.append(current_substring)
                             current_substring = token
                         else:
-                            current_substring += ' ' + token if current_substring[-1].isalnum() and token.isalnum() else token
+                            current_substring += token
                     else:
                         current_substring = token
 
-        if space_count > 1:
+        if space_count > 0:
             if current_substring:
                 substrings.append(current_substring)
             substrings.append('<|space|>')
-        elif space_count == 1:
-            if current_substring and not current_substring.endswith(' '):
-                current_substring += ' '
-
-        if current_substring:
-            substrings.append(current_substring)
 
         # Merge substrings to respect max_len
         merged_substrings = []
@@ -235,7 +226,7 @@ class CustomTokenizer:
                     current_substring = substring
                 else:
                     if current_substring:
-                        current_substring += ' ' + substring if current_substring[-1].isalnum() and substring.isalnum() else substring
+                        current_substring += substring
                     else:
                         current_substring = substring
 
