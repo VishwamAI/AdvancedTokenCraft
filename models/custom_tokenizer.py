@@ -45,12 +45,9 @@ class CustomTokenizer:
                         if len(current_token) + 1 > max_len:
                             tokens.append(current_token)
                             current_token = ""
-                        # Otherwise, add a space to the current token
-                        else:
-                            current_token += " "
-                    # Append a space token
-                    tokens.append("<|space|>")
-                space_encountered = True
+                        # Append the current token and reset it
+                        tokens.append("<|space|>")
+                    space_encountered = True
             else:
                 space_encountered = False
                 # If adding the new token exceeds max_len, append the current token and reset it
