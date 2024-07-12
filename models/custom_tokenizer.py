@@ -66,4 +66,8 @@ class CustomTokenizer:
         # Split very long words that exceed max_len
         tokens = [subtoken for token in tokens for subtoken in [token[i:i+max_len] for i in range(0, len(token), max_len)]]
 
+        # Remove leading <|space|> tokens
+        while tokens and tokens[0] == "<|space|>":
+            tokens.pop(0)
+
         return tokens
