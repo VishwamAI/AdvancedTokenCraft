@@ -226,7 +226,7 @@ class CustomTokenizer:
                     current_token = token
                 else:
                     if current_token:
-                        current_token += token
+                        current_token += " " + token
                     else:
                         current_token = token
 
