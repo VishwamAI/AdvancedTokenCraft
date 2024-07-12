@@ -90,4 +90,8 @@ class CustomTokenizer:
         if current_token:
             merged_tokens.append(current_token)
 
+        # Remove leading <|space|> tokens
+        while merged_tokens and merged_tokens[0] == "<|space|>":
+            merged_tokens.pop(0)
+
         return merged_tokens
