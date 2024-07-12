@@ -210,6 +210,7 @@ class CustomTokenizer:
             tokens.append(current_token)
 
         # Merge tokens to respect max_len
+        # Merge tokens to respect max_len
         merged_tokens = []
         current_token = ""
         for token in tokens:
