@@ -220,13 +220,13 @@ class CustomTokenizer:
                 if not merged_tokens or merged_tokens[-1] != '<|space|>':
                     merged_tokens.append(token)
             else:
-                if len(current_token) + len(token) > max_len:
+                if len(current_token) + len(token) + (1 if current_token else 0) > max_len:
                     if current_token:
                         merged_tokens.append(current_token)
                     current_token = token
                 else:
                     if current_token:
-                        current_token += token
+                        current_token += " " + token
                     else:
                         current_token = token
 
