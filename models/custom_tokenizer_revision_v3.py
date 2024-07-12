@@ -61,7 +61,7 @@ class CustomTokenizer:
                     current_token = token
                 else:
                     if current_token:
-                        current_token += ' ' + token  # Add space when merging in this step
+                        current_token += token  # Do not add space when merging
                     else:
                         current_token = token
 
