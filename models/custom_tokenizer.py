@@ -35,11 +35,12 @@ class CustomTokenizer:
         tokens = []
         current_token = ""
         space_encountered = False
+        first_token = True
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
             if token.isspace():
-                if not space_encountered:
+                if not space_encountered and not first_token:
                     if current_token:
                         # If the current token plus a space exceeds max_len, append the current token
                         if len(current_token) + 1 > max_len:
@@ -50,6 +51,11 @@ class CustomTokenizer:
                     space_encountered = True
             else:
                 space_encountered = False
+                # If it's the first token and it's a space, skip adding <|space|>
+                if first_token and token.isspace():
+                    first_token = False
+                    continue
+                first_token = False
                 # If adding the new token exceeds max_len, append the current token and reset it
                 if len(current_token) + len(token) > max_len:
                     if current_token:
