@@ -175,88 +175,65 @@ class CustomTokenizer:
         if not isinstance(max_len, int) or max_len <= 0:
             raise ValueError("max_len must be a positive integer.")
 
-        substrings = []
-        current_substring = ""
-        space_count = 0
+        tokens = []
+        current_token = ""
+        space_encountered = False
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
             if token.isspace():
-                space_count += 1
+                if not space_encountered:
+                    if current_token:
+                        tokens.append(current_token)
+                        current_token = ""
+                    tokens.append('<|space|>')
+                space_encountered = True
             else:
-                if space_count > 0:
-                    if current_substring:
-                        substrings.append(current_substring)
-                        current_substring = ""
-                    substrings.append('<|space|>')
-                    space_count = 0
+                space_encountered = False
                 if len(token) > max_len:
                     start = 0
                     while start < len(token):
                         end = min(start + max_len, len(token))
-                        if end < len(token) and token[end].isalnum() and token[end - 1].isalnum():
-                            end = token.rfind(' ', start, end)
-                            if end == -1:
-                                end = start + max_len
-                        substrings.append(token[start:end])
+                        tokens.append(token[start:end])
                         start = end
-                    current_substring = ""
                 else:
-                    if current_substring:
-                        if len(current_substring) + len(token) + 1 > max_len:
-                            substrings.append(current_substring)
-                            current_substring = token
+                    if current_token:
+                        if len(current_token) + len(token) > max_len:
+                            tokens.append(current_token)
+                            current_token = token
                         else:
-                            current_substring += ' ' + token if current_substring[-1].isalnum() and token.isalnum() else token
+                            current_token += token
                     else:
-                        current_substring = token
+                        current_token = token
 
-        if space_count > 0:
-            if current_substring:
-                substrings.append(current_substring)
-            substrings.append('<|space|>')
+        if current_token:
+            tokens.append(current_token)
 
-        # Merge substrings to respect max_len
-        merged_substrings = []
-        current_substring = ""
-        for substring in substrings:
-            if substring == '<|space|>':
-                if current_substring:
-                    merged_substrings.append(current_substring)
-                    current_substring = ""
-                if not merged_substrings or merged_substrings[-1] != '<|space|>':
-                    merged_substrings.append(substring)
+        # Merge tokens to respect max_len
+        merged_tokens = []
+        current_token = ""
+        for token in tokens:
+            if token == '<|space|>':
+                if current_token:
+                    merged_tokens.append(current_token)
+                    current_token = ""
+                if not merged_tokens or merged_tokens[-1] != '<|space|>':
+                    merged_tokens.append(token)
             else:
-                if len(current_substring) + len(substring) + (1 if current_substring else 0) > max_len:
-                    if current_substring:
-                        merged_substrings.append(current_substring)
-                    current_substring = substring
+                if len(current_token) + len(token) > max_len:
+                    if current_token:
+                        merged_tokens.append(current_token)
+                    current_token = token
                 else:
-                    if current_substring:
-                        current_substring += ' ' + substring if current_substring[-1].isalnum() and substring.isalnum() else substring
+                    if current_token:
+                        current_token += token
                     else:
-                        current_substring = substring
+                        current_token = token
 
-        if current_substring:
-            merged_substrings.append(current_substring)
+        if current_token:
+            merged_tokens.append(current_token)
 
-        # Ensure no merged substring exceeds max_len
-        final_substrings = []
-        for substring in merged_substrings:
-            if len(substring) > max_len:
-                start = 0
-                while start < len(substring):
-                    end = min(start + max_len, len(substring))
-                    if end < len(substring) and substring[end].isalnum() and substring[end - 1].isalnum():
-                        end = substring.rfind(' ', start, end)
-                        if end == -1:
-                            end = start + max_len
-                    final_substrings.append(substring[start:end])
-                    start = end
-            else:
-                final_substrings.append(substring)
-
-        return final_substrings
+        return merged_tokens
 
 class ChatFormat:
     def __init__(self, tokenizer: CustomTokenizer):
