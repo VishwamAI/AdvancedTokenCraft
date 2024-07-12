@@ -4,7 +4,7 @@ from typing import List, Dict
 class CustomTokenizer:
     special_tokens: Dict[str, int]
     num_reserved_special_tokens = 256
-    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|\w+|\d+|[^\s\w\d]|<\|space\|>|\s+"
+    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|\w+|\d+|[^\s\w\d]|<\|space\|>|\s+|\n|\t"
 
     def _split_whitespaces_or_nonwhitespaces(self, s: str, max_len: int) -> List[str]:
         if not isinstance(max_len, int) or max_len <= 0:
@@ -16,7 +16,7 @@ class CustomTokenizer:
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
-            if token.isspace():
+            if token.isspace() or token == '\n' or token == '\t':
                 if not space_encountered:
                     if current_token:
                         tokens.append(current_token)
