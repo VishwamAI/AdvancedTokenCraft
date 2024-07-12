@@ -158,82 +158,82 @@ class CustomTokenizer:
                 raise ValueError(f"Unknown token ID: {token_id}")
         return ''.join(tokens)
 
-        def _split_whitespaces_or_nonwhitespaces(self, s: str, max_len: int) -> List[str]:
-            """
-            Splits a string into substrings based on whitespace or non-whitespace characters,
-            ensuring that each substring does not exceed the specified maximum length and
-            respects word boundaries. Consecutive spaces are treated as a single <|space|> token.
-            Tokens longer than max_len are split into chunks that respect max_len.
+    def _split_whitespaces_or_nonwhitespaces(self, s: str, max_len: int) -> List[str]:
+        """
+        Splits a string into substrings based on whitespace or non-whitespace characters,
+        ensuring that each substring does not exceed the specified maximum length and
+        respects word boundaries. Consecutive spaces are treated as a single <|space|> token.
+        Tokens longer than max_len are split into chunks that respect max_len.
 
-            Args:
-            s (str): The input string to be split.
-            max_len (int): The maximum length of each substring. Must be a positive integer.
+        Args:
+        s (str): The input string to be split.
+        max_len (int): The maximum length of each substring. Must be a positive integer.
 
-            Returns:
-            list[str]: A list of substrings.
-            """
-            if not isinstance(max_len, int) or max_len <= 0:
-                raise ValueError("max_len must be a positive integer.")
+        Returns:
+        list[str]: A list of substrings.
+        """
+        if not isinstance(max_len, int) or max_len <= 0:
+            raise ValueError("max_len must be a positive integer.")
 
-            tokens = []
-            current_token = ""
-            space_encountered = False
+        tokens = []
+        current_token = ""
+        space_encountered = False
 
-            for match in re.finditer(self.pat_str, s):
-                token = match.group()
-                if token.isspace():
-                    if not space_encountered:
-                        if current_token:
-                            tokens.append(current_token)
-                            current_token = ""
-                        tokens.append('<|space|>')
-                    space_encountered = True
+        for match in re.finditer(self.pat_str, s):
+            token = match.group()
+            if token.isspace():
+                if not space_encountered:
+                    if current_token:
+                        tokens.append(current_token)
+                        current_token = ""
+                    tokens.append('<|space|>')
+                space_encountered = True
+            else:
+                space_encountered = False
+                if len(token) > max_len:
+                    start = 0
+                    while start < len(token):
+                        end = min(start + max_len, len(token))
+                        tokens.append(token[start:end])
+                        start = end
                 else:
-                    space_encountered = False
-                    if len(token) > max_len:
-                        start = 0
-                        while start < len(token):
-                            end = min(start + max_len, len(token))
-                            tokens.append(token[start:end])
-                            start = end
-                    else:
-                        if current_token:
-                            if len(current_token) + len(token) > max_len:
-                                tokens.append(current_token)
-                                current_token = token
-                            else:
-                                current_token += token
-                        else:
+                    if current_token:
+                        if len(current_token) + len(token) > max_len:
+                            tokens.append(current_token)
                             current_token = token
+                        else:
+                            current_token += token
+                    else:
+                        current_token = token
 
-            if current_token:
-                tokens.append(current_token)
+        if current_token:
+            tokens.append(current_token)
 
-            # Merge tokens to respect max_len
-            merged_tokens = []
-            current_token = ""
-            for token in tokens:
-                if token == '<|space|>':
+        # Merge tokens to respect max_len
+        merged_tokens = []
+        current_token = ""
+        for token in tokens:
+            if token == '<|space|>':
+                if current_token:
+                    merged_tokens.append(current_token)
+                    current_token = ""
+                if not merged_tokens or merged_tokens[-1] != '<|space|>':
+                    merged_tokens.append(token)
+            else:
+                if len(current_token) + len(token) > max_len:
                     if current_token:
                         merged_tokens.append(current_token)
-                        current_token = ""
-                    if not merged_tokens or merged_tokens[-1] != '<|space|>':
-                        merged_tokens.append(token)
+                    current_token = token
                 else:
-                    if len(current_token) + len(token) > max_len:
-                        if current_token:
-                            merged_tokens.append(current_token)
-                        current_token = token
+                    if current_token:
+                        current_token += token
                     else:
-                        if current_token:
-                            current_token += token
-                        else:
-                            current_token = token
+                        current_token = token
 
-            if current_token:
-                merged_tokens.append(current_token)
+        if current_token:
+            merged_tokens.append(current_token)
 
-            return merged_tokens
+        return merged_tokens
 
 class ChatFormat:
     def __init__(self, tokenizer: CustomTokenizer):
