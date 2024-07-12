@@ -20,13 +20,6 @@ def test_tokenizer_on_dataset(tokenizer, dataset_path, max_len=10, subset_size=1
         print(f"Tokens: {tokens}")
         print()
 
-        # Debugging: Print intermediate steps
-        print("Debugging Information:")
-        for match in re.finditer(tokenizer.pat_str, text):
-            token = match.group()
-            print(f"Matched Token: {token}")
-        print()
-
 if __name__ == "__main__":
     tokenizer = CustomTokenizer()
     dataset_path = "instruction.jsonl"
