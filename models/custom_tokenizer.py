@@ -10,6 +10,7 @@ class CustomTokenizer:
     def _load_vocab(self, vocab_file: str) -> Dict[str, int]:
         # Load vocabulary from the given file
         # ...
+        pass
 
     def encode(
         self,
@@ -22,6 +23,7 @@ class CustomTokenizer:
         disallowed_special: Union[Literal["all"], Collection[str]] = (),
     ) -> List[int]:
         # ...
+        pass
 
     def _split_whitespaces_or_nonwhitespaces(self, s: str, max_len: int) -> List[str]:
         if not isinstance(max_len, int) or max_len <= 0:
