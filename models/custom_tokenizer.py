@@ -1,3 +1,6 @@
+import re
+from typing import Dict, List, Union, Literal, AbstractSet, Collection
+
 class CustomTokenizer:
     special_tokens: Dict[str, int]
     num_reserved_special_tokens = 256
