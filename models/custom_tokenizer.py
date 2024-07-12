@@ -35,45 +35,59 @@ class CustomTokenizer:
         tokens = []
         current_token = ""
         space_encountered = False
-        first_token = True
 
         for match in re.finditer(self.pat_str, s):
             token = match.group()
             if token.isspace():
-                if not space_encountered and not first_token:
-                    if current_token:
-                        # If the current token plus a space exceeds max_len, append the current token
-                        if len(current_token) + 1 > max_len:
-                            tokens.append(current_token)
-                            current_token = ""
-                        # Append the current token and reset it
-                        tokens.append("<|space|>")
-                    space_encountered = True
-            else:
-                space_encountered = False
-                # If it's the first token and it's a space, skip adding <|space|>
-                if first_token and token.isspace():
-                    first_token = False
-                    continue
-                first_token = False
-                # If adding the new token exceeds max_len, append the current token and reset it
-                if len(current_token) + len(token) > max_len:
+                if not space_encountered:
                     if current_token:
                         tokens.append(current_token)
-                    current_token = token
-                # Otherwise, add the token to the current token
+                        current_token = ""
+                    tokens.append("<|space|>")
+                space_encountered = True
+            else:
+                space_encountered = False
+                if len(token) > max_len:
+                    start = 0
+                    while start < len(token):
+                        end = min(start + max_len, len(token))
+                        tokens.append(token[start:end])
+                        start = end
                 else:
-                    current_token += token
+                    if current_token:
+                        if len(current_token) + len(token) > max_len:
+                            tokens.append(current_token)
+                            current_token = token
+                        else:
+                            current_token += token
+                    else:
+                        current_token = token
 
-        # Append the last token if it exists
         if current_token:
             tokens.append(current_token)
 
-        # Split very long words that exceed max_len
-        tokens = [subtoken for token in tokens for subtoken in [token[i:i+max_len] for i in range(0, len(token), max_len)]]
+        # Merge tokens to respect max_len
+        merged_tokens = []
+        current_token = ""
+        for token in tokens:
+            if token == "<|space|>":
+                if current_token:
+                    merged_tokens.append(current_token)
+                    current_token = ""
+                if not merged_tokens or merged_tokens[-1] != "<|space|>":
+                    merged_tokens.append(token)
+            else:
+                if len(current_token) + len(token) > max_len:
+                    if current_token:
+                        merged_tokens.append(current_token)
+                    current_token = token
+                else:
+                    if current_token:
+                        current_token += token
+                    else:
+                        current_token = token
 
-        # Remove leading <|space|> tokens
-        while tokens and tokens[0] == "<|space|>":
-            tokens.pop(0)
+        if current_token:
+            merged_tokens.append(current_token)
 
-        return tokens
+        return merged_tokens
